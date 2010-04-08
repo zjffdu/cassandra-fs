@@ -25,6 +25,14 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
+/**
+ * TODO use the hector java api in future, here use the thrift api just for
+ * learning
+ * 
+ * @author zhanje
+ * 
+ */
+
 public class CassandraFacade {
 
 	private static CassandraFacade instance;
@@ -53,12 +61,12 @@ public class CassandraFacade {
 		transport.open();
 	}
 
-	public void put(String key, String column, String value) throws IOException {
+	public void put(String key, String column, byte[] value) throws IOException {
 
 		try {
 			ColumnPath columnPath = extractColumnPath(column);
-			client.insert(FSConstants.KeySpace, key, columnPath, value
-					.getBytes(), System.currentTimeMillis(), WriteLevel);
+			client.insert(FSConstants.KeySpace, key, columnPath, value, System
+					.currentTimeMillis(), WriteLevel);
 		} catch (InvalidRequestException e) {
 			throw new IOException(e);
 		} catch (UnavailableException e) {
@@ -106,19 +114,43 @@ public class CassandraFacade {
 		}
 	}
 
-	public boolean delete(String key) throws IOException {
+	public void delete(String key) throws IOException {
+
+		// TODO split the two operation
 		try {
-			client.send_remove(FSConstants.KeySpace, key, new ColumnPath(
-					FSConstants.FileCF, null, FSConstants.TypeAttr.getBytes()),
+			client.remove(FSConstants.KeySpace, key, new ColumnPath(
+					FSConstants.FileCF, null, null),
 					System.currentTimeMillis(), WriteLevel);
-			client.send_remove(FSConstants.KeySpace, key, new ColumnPath(
-					FSConstants.FileCF, null, FSConstants.ContentAttr.getBytes()),
-					System.currentTimeMillis(), WriteLevel);
-			
+			client.remove(FSConstants.KeySpace, key, new ColumnPath(
+					FSConstants.FolderCF, null, null), System
+					.currentTimeMillis(), WriteLevel);
 		} catch (TException e) {
 			throw new IOException(e);
+		} catch (InvalidRequestException e) {
+			throw new IOException(e);
+		} catch (UnavailableException e) {
+			throw new IOException(e);
+		} catch (TimedOutException e) {
+			throw new IOException(e);
 		}
+	}
 
+	public void delete(String key, String columnFamily, String superColumn)
+			throws IOException {
+		try {
+			ColumnPath columnPath = new ColumnPath(columnFamily, superColumn
+					.getBytes(), null);
+			client.remove(FSConstants.KeySpace, key, columnPath, System
+					.currentTimeMillis(), WriteLevel);
+		} catch (TException e) {
+			throw new IOException(e);
+		} catch (InvalidRequestException e) {
+			throw new IOException(e);
+		} catch (UnavailableException e) {
+			throw new IOException(e);
+		} catch (TimedOutException e) {
+			throw new IOException(e);
+		}
 	}
 
 	public boolean exist(String key) throws IOException {
@@ -160,32 +192,71 @@ public class CassandraFacade {
 		return false;
 	}
 
-	public List<String> list(String key, String columnFamily)
-			throws IOException {
+	public List<Path> list(String key, String columnFamily,
+			boolean includeFolderFlag) throws IOException {
 		try {
-			List<String> children = new ArrayList<String>();
+			List<Path> children = new ArrayList<Path>();
 			List<ColumnOrSuperColumn> result = client.get_slice(
 					FSConstants.KeySpace, key, new ColumnParent(columnFamily,
 							null),
 					new SlicePredicate(null, new SliceRange(new byte[0],
 							new byte[0], false, Integer.MAX_VALUE)), ReadLevel);
-			for (ColumnOrSuperColumn column : result) {
-				SuperColumn sc = column.getSuper_column();
-				if (sc != null) {
-					String name = new String(sc.name);
-					if (!name.equals(FSConstants.FolderFlag)) {
-						children.add(name);
+
+			if (columnFamily.equals(FSConstants.FolderCF)) {
+				for (ColumnOrSuperColumn column : result) {
+					SuperColumn sc = column.getSuper_column();
+					if (sc != null) {
+						String name = new String(sc.name);
+						List<Column> attributes = sc.getColumns();
+						Path path = new Path(name, attributes);
+						if (includeFolderFlag) {
+							children.add(path);
+						} else if (!name.equals(FSConstants.FolderFlag)) {
+							children.add(path);
+						}
 					}
 				}
-				Column col = column.getColumn();
-				if (col != null) {
-					String name = new String(col.name);
-					if (!name.equals(FSConstants.FolderFlag)) {
-						children.add(name);
+			} else if (columnFamily.equals(FSConstants.FileCF)) {
+				List<Column> attrColumn = new ArrayList<Column>();
+				for (ColumnOrSuperColumn column : result) {
+					Column col = column.getColumn();
+					if (col != null) {
+						attrColumn.add(col);
 					}
 				}
+				if (attrColumn.size()!=0){
+					Path path = new Path(key, attrColumn);
+					children.add(path);
+				}
+			} else {
+				throw new RuntimeException("Do not support CF:'" + columnFamily
+						+ "' now");
 			}
+
 			return children;
+		} catch (InvalidRequestException e) {
+			throw new IOException(e);
+		} catch (UnavailableException e) {
+			throw new IOException(e);
+		} catch (TimedOutException e) {
+			throw new IOException(e);
+		} catch (TException e) {
+			throw new IOException(e);
+		}
+	}
+
+	public Path listFile(String file) throws IOException {
+		try {
+			List<ColumnOrSuperColumn> result = client.get_slice(
+					FSConstants.KeySpace, file, new ColumnParent(
+							FSConstants.FileCF, null), new SlicePredicate(null,
+							new SliceRange(new byte[0], new byte[0], false,
+									Integer.MAX_VALUE)), ReadLevel);
+			List<Column> attrColumns = new ArrayList<Column>();
+			for (ColumnOrSuperColumn col : result) {
+				attrColumns.add(col.getColumn());
+			}
+			return new Path(file, attrColumns);
 		} catch (InvalidRequestException e) {
 			throw new IOException(e);
 		} catch (UnavailableException e) {

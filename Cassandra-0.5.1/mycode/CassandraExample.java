@@ -29,7 +29,7 @@ public class CassandraExample {
 		transport.open();
 
 		client.insert("FS", "/data", new ColumnPath("Folder", "/data/a.txt"
-				.getBytes(), "Size".getBytes()), "1".getBytes(), System
+				.getBytes(), "Size".getBytes()), "10".getBytes(), System
 				.currentTimeMillis(), 1);
 
 		// List<ColumnOrSuperColumn> result = client.get_slice("Keyspace1",
@@ -47,9 +47,16 @@ public class CassandraExample {
 		// Integer.MAX_VALUE)), "", "", 100, 1);
 
 		ColumnOrSuperColumn result = client.get("FS", "/data", new ColumnPath(
-				"Folder", "/data/a2.txt".getBytes(), "Size".getBytes()), 1);
+				"Folder", "/data/a.txt".getBytes(), "Size".getBytes()), 1);
+
 		
 		System.out.println(new String(result.getColumn().value));
+		client.remove("FS", "/data", new ColumnPath("Folder",
+				"/data/a.txt".getBytes(), null), System
+				.currentTimeMillis(), 1);
+//		result = client.get("FS", "/data", new ColumnPath(
+//				"Folder", "/data/a.txt".getBytes(), "Size".getBytes()), 1);
+//		System.out.println(new String(result.getColumn().value));
 		// SlicePredicate predicate = new SlicePredicate(null, new SliceRange(
 		// new byte[0], new byte[0], false, Integer.MAX_VALUE));
 		// List<KeySlice> keys = client.get_range_slice("FS",
