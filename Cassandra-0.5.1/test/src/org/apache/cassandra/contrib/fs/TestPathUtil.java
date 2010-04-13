@@ -12,6 +12,6 @@ public class TestPathUtil extends TestCase {
 
 	public void testRemoveDirSuffix() {
 		assertEquals("/", PathUtil.removeDirSuffix("/"));
-		assertEquals("/daa", PathUtil.removeDirSuffix("/data/"));
+		assertEquals("/data", PathUtil.removeDirSuffix("/data/"));
 	}
 }

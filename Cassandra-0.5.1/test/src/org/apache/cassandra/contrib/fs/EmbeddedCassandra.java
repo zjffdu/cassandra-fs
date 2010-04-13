@@ -5,12 +5,12 @@ import java.io.IOException;
 import org.apache.cassandra.service.CassandraDaemon;
 import org.apache.thrift.transport.TTransportException;
 
-public class CassandraThread extends Thread {
+public class EmbeddedCassandra extends Thread {
 
 	private CassandraDaemon daemon;
 
-	public CassandraThread() {
-		CassandraDaemon daemon = new CassandraDaemon();
+	public EmbeddedCassandra() {
+		daemon = new CassandraDaemon();
 		try {
 			daemon.init(null);
 		} catch (TTransportException e) {
@@ -26,7 +26,7 @@ public class CassandraThread extends Thread {
 	}
 
 	public static void main(String[] args) {
-		CassandraThread thread = new CassandraThread();
+		EmbeddedCassandra thread = new EmbeddedCassandra();
 		thread.setDaemon(true);
 		thread.start();
 	}

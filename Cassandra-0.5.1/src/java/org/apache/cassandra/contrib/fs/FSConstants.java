@@ -5,7 +5,7 @@ import org.apache.cassandra.contrib.fs.util.Bytes;
 public class FSConstants {
 
 	// cluster config
-	public final static String HostName = "local";
+	public final static String HostName = "localhost";
 	public final static int ThriftPort = 9160;
 
 	// schema config
