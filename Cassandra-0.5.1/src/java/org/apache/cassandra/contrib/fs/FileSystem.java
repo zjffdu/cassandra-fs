@@ -188,23 +188,39 @@ public class FileSystem {
 
 	public static void main(String[] args) throws IOException,
 			TTransportException {
+		System.setProperty("storage-config", "conf");
 		FileSystem fs = FileSystem.getInstance();
+		fs.mkdir("/data");
+		System.out.println(fs.exist("/data"));
+		
+		fs.deleteDir("/data",true);
+		System.out.println(fs.exist("/data"));
+		fs.createFile("/data/1.txt", Bytes.toBytes("hello world3"));
+		System.out.println(fs.exist("/data"));
+		System.out.println(fs.exist("/data/a.txt"));
+		 fs.deleteFile("/data/1.txt");
+		 System.out.println(fs.exist("/data/a.txt"));
+//		// List<Path> files = fs.list("/");
+//		// // for (String file : files) {
+//		// // System.out.println(file);
+//		// // }
+//		System.out.println(fs.existFile("/data/1.txt"));
+//		System.out.println(new String(fs.readFile("/data/1.txt")));
+//
+//		// // System.out.println(fs.existDir("/data"));
+//		// fs.deleteDir("/data");
+//		//
+//		List<Path> files = fs.list("/");
+//		for (Path path : files) {
+//			System.out.println(path);
+//		}
+//
+//		files = fs.list("/data");
+//		for (Path path : files) {
+//			System.out.println(path);
+//		}
 
-		// fs.createFile("/data/1.txt", Bytes.toBytes("hello world3"));
-		// fs.deleteFile("/data/1.txt");
-		// List<Path> files = fs.list("/");
-		// // for (String file : files) {
-		// // System.out.println(file);
-		// // }
-		// System.out.println(fs.existFile("/data/1.txt"));
-		// // System.out.println(fs.existDir("/data"));
-		// fs.deleteDir("/data");
-		//
-		// files = fs.listAll("/data");
-		// for (Path path : files) {
-		// System.out.println(path);
-		// }
-		System.out.println(fs.deleteDir("/usr", true));
+		// System.out.println(fs.deleteDir("/usr", true));
 		// System.out.println(fs.);
 		// String content = new String(fs.readFile("/data/1.txt"));
 		// System.out.println(content);

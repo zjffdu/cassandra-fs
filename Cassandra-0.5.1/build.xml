@@ -34,7 +34,7 @@
 	<property name="test.conf" value="${test.dir}/conf" />
 	<property name="test.name" value="Test*" />
 	<property name="dist.dir" value="build/dist" />
-	<property name="version" value="0.5.1" />
+	<property name="version" value="0.5.0" />
 	<property name="final.name" value="${ant.project.name}-${version}" />
 
 
@@ -80,7 +80,7 @@
     -->
 	<target name="jar" depends="compile">
 		<mkdir dir="${build.classes}/META-INF" />
-		<jar jarfile="${build.dir}/${final.name}.jar" basedir="${build.classes}">
+		<jar jarfile="build/${final.name}.jar" basedir="${build.classes}">
 			<manifest>
 				<!-- <section name="org/apache/cassandra/infrastructure"> -->
 				<attribute name="Implementation-Title" value="Cassandra" />

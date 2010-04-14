@@ -12,6 +12,8 @@ public class Path {
 
 	private String url;
 
+	private String name;
+
 	private boolean isDir;
 
 	private int version = 1;
@@ -36,11 +38,22 @@ public class Path {
 
 	public Path(String url, boolean isDir) {
 		this.url = url;
+		this.name = getNameFromURL(url);
 		this.isDir = isDir;
+	}
+
+	private String getNameFromURL(String url) {
+		int index = url.lastIndexOf("/");
+		if (index == 0) {
+			return "/";
+		} else {
+			return url.substring(index + 1);
+		}
 	}
 
 	public Path(String url, List<Column> attributes) {
 		this.url = url;
+		this.name = getNameFromURL(url);
 		for (Column attr : attributes) {
 			String attrName = new String(attr.name);
 			if (attrName.equals(FSConstants.TypeAttr)) {
@@ -80,6 +93,10 @@ public class Path {
 		builder.append(String.format("%16s", last_modification_time));
 		builder.append(" " + url);
 		return builder.toString();
+	}
+
+	public String getName() {
+		return this.name;
 	}
 
 	public static void main(String[] args) {
