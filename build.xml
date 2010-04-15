@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+ ~ Licensed to the Apache Software Foundation (ASF) under one
+ ~ or more contributor license agreements.  See the NOTICE file
+ ~ distributed with this work for additional information
+ ~ regarding copyright ownership.  The ASF licenses this file
+ ~ to you under the Apache License, Version 2.0 (the
+ ~ "License"); you may not use this file except in compliance
+ ~ with the License.  You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+<project basedir="." default="compile" name="apache-cassandra-fs">
+	<property environment="env" />
+	<property file="build.properties" />
+	<property name="debuglevel" value="source,lines,vars" />
+
+	<property name="basedir" value="." />
+	<property name="build.src" value="${basedir}/src/java" />
+	<property name="build.lib" value="${basedir}/lib" />
+	<property name="build.test.src" value="${basedir}/test/src" />
+	<property name="build.classes" value="build/classes" />
+	<property name="build.test.classes" value="build/test/classes" />
+	<property name="javadoc.dir" value="build/javadoc" />
+	<property name="test.dir" value="${basedir}/test" />
+	<property name="test.resources" value="${test.dir}/resources" />
+	<property name="test.conf" value="${test.dir}/conf" />
+	<property name="test.name" value="Test*" />
+	<property name="dist.dir" value="build/dist" />
+	<property name="version" value="0.5.0" />
+	<property name="final.name" value="${ant.project.name}-${version}" />
+
+
+	<!-- 
+	 Add all the dependencies.
+    -->
+	<path id="cassandra_fs.classpath">
+		<pathelement location="${build.classes}" />
+		<fileset dir="${build.lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!--
+	Setup the output directories.
+    -->
+	<target name="init" depends="clean">
+		<mkdir dir="${build.classes}" />
+		<mkdir dir="${build.test.classes}" />
+	</target>
+
+	<target name="clean">
+		<delete dir="build/classes" />
+		<delete dir="build/test" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac debug="true" debuglevel="${debuglevel}" destdir="${build.classes}">
+			<src path="${build.src}" />
+			<classpath refid="cassandra_fs.classpath" />
+		</javac>
+	</target>
+
+	<target name="compile-test" depends="compile">
+		<javac debug="true" debuglevel="${debuglevel}" destdir="${build.test.classes}">
+			<src path="${build.test.src}" />
+			<classpath refid="cassandra_fs.classpath" />
+		</javac>
+	</target>
+
+	<!--
+	The jar target makes cassandra.jar output.
+    -->
+	<target name="jar" depends="compile">
+		<mkdir dir="${build.classes}/META-INF" />
+		<jar jarfile="build/${final.name}.jar" basedir="${build.classes}">
+			<manifest>
+				<!-- <section name="org/apache/cassandra/infrastructure"> -->
+				<attribute name="Implementation-Title" value="Cassandra" />
+				<attribute name="Implementation-Version" value="${version}" />
+				<attribute name="Implementation-Vendor" value="Apache" />
+				<attribute name="Premain-Class" value="org.apache.cassandra.infrastructure.continuations.CAgent" />
+				<!-- </section> -->
+			</manifest>
+		</jar>
+	</target>
+
+
+	<target name="test" depends="compile-test">
+		<echo message="running tests" />
+		<mkdir dir="build/test/cassandra" />
+		<mkdir dir="build/test/output" />
+		<junit fork="on" failureproperty="testfailed">
+			<formatter type="xml" usefile="true" />
+			<formatter type="brief" usefile="false" />
+			<jvmarg value="-Dstorage-config=${test.conf}" />
+			<jvmarg value="-ea" />
+			<classpath>
+				<path refid="cassandra_fs.classpath" />
+				<pathelement location="${build.test.classes}" />
+				<pathelement location="${test.conf}" />
+			</classpath>
+			<batchtest todir="build/test/output">
+				<fileset dir="${build.test.classes}" includes="**/${test.name}.class" />
+			</batchtest>
+		</junit>
+
+		<fail if="testfailed" message="Some test(s) failed." />
+	</target>
+
+	<target name="javadoc" depends="init">
+		<tstamp>
+			<format property="YEAR" pattern="yyyy" />
+		</tstamp>
+		<javadoc destdir="${javadoc.dir}" author="true" version="true" use="true" windowtitle="${ant.project.name} API" classpathref="cassandra.classpath" bottom="Copyright &amp;copy; ${YEAR} The Apache Software Foundation">
+			<fileset dir="${build.src}" defaultexcludes="yes">
+				<include name="org/apache/**/*.java" />
+			</fileset>
+		</javadoc>
+	</target>
+
+</project>
