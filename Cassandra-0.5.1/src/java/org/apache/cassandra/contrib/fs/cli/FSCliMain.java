@@ -12,7 +12,8 @@ import java.util.List;
 import jline.ConsoleReader;
 
 import org.apache.cassandra.contrib.fs.FSConstants;
-import org.apache.cassandra.contrib.fs.FileSystem;
+import org.apache.cassandra.contrib.fs.CassandraFileSystem;
+import org.apache.cassandra.contrib.fs.IFileSystem;
 import org.apache.cassandra.contrib.fs.Path;
 import org.apache.cassandra.contrib.fs.util.Bytes;
 import org.apache.commons.io.IOUtils;
@@ -24,7 +25,7 @@ public class FSCliMain {
 
 	private ConsoleReader reader;
 
-	private FileSystem fs;
+	private IFileSystem fs;
 
 	private String curWorkingDir;
 
@@ -34,7 +35,7 @@ public class FSCliMain {
 		this.reader = new ConsoleReader();
 		this.reader.addCompletor(new FSCliCompleter());
 		this.reader.setBellEnabled(false);
-		this.fs = FileSystem.getInstance();
+		this.fs = CassandraFileSystem.getInstance();
 		this.curWorkingDir = "/usr/" + System.getenv("USERNAME");
 		this.fs.mkdir(curWorkingDir);
 	}

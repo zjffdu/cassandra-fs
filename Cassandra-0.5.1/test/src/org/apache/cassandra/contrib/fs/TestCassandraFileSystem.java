@@ -13,7 +13,7 @@ import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.commons.io.FileUtils;
 import org.apache.thrift.transport.TTransportException;
 
-public class TestFileSystem extends TestCase {
+public class TestCassandraFileSystem extends TestCase {
 
 	private EmbeddedCassandra daemon;
 
@@ -39,7 +39,7 @@ public class TestFileSystem extends TestCase {
 
 	public void testBasicOperation() throws TTransportException, IOException {
 		// mkdir
-		FileSystem fs = FileSystem.getInstance();
+		IFileSystem fs = CassandraFileSystem.getInstance();
 		fs.mkdir("/data");
 		assertTrue(fs.existDir("/data"));
 		assertTrue(fs.exist("/data"));

@@ -16,36 +16,39 @@ import org.apache.thrift.transport.TTransportException;
  * @author zhanje
  * 
  */
-public class FileSystem {
+public class CassandraFileSystem implements IFileSystem {
 
-	private static Logger LOGGER = Logger.getLogger(FileSystem.class);
+	private static Logger LOGGER = Logger.getLogger(CassandraFileSystem.class);
 
 	private static SimpleDateFormat format = new SimpleDateFormat(
 			"yyyy/MM/dd hh:mm");
 
-	private static FileSystem instance;
+	private static IFileSystem instance;
 
 	private CassandraFacade facade;
 
-	public static FileSystem getInstance() throws TTransportException,
+	public static IFileSystem getInstance() throws TTransportException,
 			IOException {
 		if (instance == null) {
-			synchronized (FileSystem.class) {
+			synchronized (CassandraFileSystem.class) {
 				if (instance == null) {
-					instance = new FileSystem();
+					instance = new CassandraFileSystem();
 				}
 			}
 		}
 		return instance;
 	}
 
-	private FileSystem() throws TTransportException, IOException {
+	private CassandraFileSystem() throws TTransportException, IOException {
 		this.facade = CassandraFacade.getInstance();
 		if (!existDir("/")) {
 			mkdir("/");
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#createFile(java.lang.String, byte[])
+	 */
 	public void createFile(String path, byte[] content) throws IOException {
 		PathUtil.checkFilePath(path);
 		String parent = PathUtil.getParent(path);
@@ -80,6 +83,9 @@ public class FileSystem {
 				+ FSConstants.GroupAttr, FSConstants.DefaultGroup);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#deleteFile(java.lang.String)
+	 */
 	public boolean deleteFile(String path) throws IOException {
 		if (!existFile(path)) {
 			LOGGER.warn("File '" + path
@@ -92,6 +98,9 @@ public class FileSystem {
 		return true;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#deleteDir(java.lang.String, boolean)
+	 */
 	public boolean deleteDir(String path, boolean recursive) throws IOException {
 		if (!exist(path)) {
 			LOGGER.warn("Folder '" + path
@@ -124,12 +133,18 @@ public class FileSystem {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#readFile(java.lang.String)
+	 */
 	public byte[] readFile(String path) throws IOException {
 		LOGGER.debug("Read file '" + path + "'");
 		return facade.get(path, FSConstants.FileCF + ":"
 				+ FSConstants.ContentAttr);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#mkdir(java.lang.String)
+	 */
 	public boolean mkdir(String path) throws IOException {
 		PathUtil.checkDirPath(path);
 		if (existDir(path)) {
@@ -160,6 +175,9 @@ public class FileSystem {
 		return true;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#list(java.lang.String)
+	 */
 	public List<Path> list(String path) throws IOException {
 		if (existDir(path)) {
 			return facade.list(path, FSConstants.FolderCF, false);
@@ -170,18 +188,30 @@ public class FileSystem {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#listAll(java.lang.String)
+	 */
 	public List<Path> listAll(String path) throws IOException {
 		return facade.list(path, FSConstants.FolderCF, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#existDir(java.lang.String)
+	 */
 	public boolean existDir(String path) throws IOException {
 		return facade.list(path, FSConstants.FolderCF, true).size() != 0;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#existFile(java.lang.String)
+	 */
 	public boolean existFile(String path) throws IOException {
 		return facade.list(path, FSConstants.FileCF, true).size() != 0;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.cassandra.contrib.fs.IFileSystem#exist(java.lang.String)
+	 */
 	public boolean exist(String path) throws IOException {
 		return existDir(path) || existFile(path);
 	}
@@ -189,7 +219,7 @@ public class FileSystem {
 	public static void main(String[] args) throws IOException,
 			TTransportException {
 		System.setProperty("storage-config", "conf");
-		FileSystem fs = FileSystem.getInstance();
+		IFileSystem fs = CassandraFileSystem.getInstance();
 		fs.mkdir("/data");
 		System.out.println(fs.exist("/data"));
 		
