@@ -42,6 +42,7 @@ public class FSCliMain {
 
 	public void run() throws IOException {
 		out.println("Welcome to cassandra fs!");
+		out.println("Type 'help' for help. Type 'quit' or 'exit' to quit.");
 		String line = null;
 		while ((line = reader.readLine(Prompt)) != null
 				&& !line.equalsIgnoreCase("quit")
@@ -77,9 +78,25 @@ public class FSCliMain {
 			processCD(tokens);
 		} else if (cmd.equalsIgnoreCase("touch")) {
 			processTouch(tokens);
+		} else if (cmd.equalsIgnoreCase("help")){
+			processHelp(tokens);
 		} else {
 			out.println("Can not recognize command '" + cmd + "'");
 		}
+	}
+
+	private void processHelp(String[] tokens) {
+		out.println("List of all FS-CLI commands:");
+		out.println("cd <folder>");
+		out.println("copyToLocal <source> <dest>");
+		out.println("touch <file>...");
+		out.println("rm <file>...");
+		out.println("newfile <file> <content>");
+		out.println("cat <file>...");
+		out.println("rmdir <dir>");
+		out.println("copyFromLocal <source> <dest>");
+		out.println("mkdir <path>");
+		out.println("ls <path>");
 	}
 
 	private void processCD(String[] tokens) throws IOException {
