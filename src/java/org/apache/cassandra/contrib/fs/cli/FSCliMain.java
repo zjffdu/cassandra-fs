@@ -1,18 +1,20 @@
 package org.apache.cassandra.contrib.fs.cli;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import jline.ConsoleReader;
 
-import org.apache.cassandra.contrib.fs.FSConstants;
 import org.apache.cassandra.contrib.fs.CassandraFileSystem;
+import org.apache.cassandra.contrib.fs.FSConstants;
 import org.apache.cassandra.contrib.fs.IFileSystem;
 import org.apache.cassandra.contrib.fs.Path;
 import org.apache.cassandra.contrib.fs.util.Bytes;
@@ -78,7 +80,7 @@ public class FSCliMain {
 			processCD(tokens);
 		} else if (cmd.equalsIgnoreCase("touch")) {
 			processTouch(tokens);
-		} else if (cmd.equalsIgnoreCase("help")){
+		} else if (cmd.equalsIgnoreCase("help")) {
 			processHelp(tokens);
 		} else {
 			out.println("Can not recognize command '" + cmd + "'");
@@ -100,12 +102,12 @@ public class FSCliMain {
 	}
 
 	private void processCD(String[] tokens) throws IOException {
-		if (tokens.length!=2){
+		if (tokens.length != 2) {
 			out.println("Usage: cd <folder>");
-		}else{
-			if (!fs.existDir(decoratePath(tokens[1]))){
-				out.println("cd "+tokens[1]+" : No such folder");
-			}else{
+		} else {
+			if (!fs.existDir(decoratePath(tokens[1]))) {
+				out.println("cd " + tokens[1] + " : No such folder");
+			} else {
 				curWorkingDir = decoratePath(tokens[1]);
 			}
 		}
@@ -180,7 +182,15 @@ public class FSCliMain {
 			out.println("Usage: rmdir <dir>");
 		} else {
 			if (fs.existDir(decoratePath(tokens[1]))) {
-				fs.deleteDir(decoratePath(tokens[1]), true);
+				if (fs.list(decoratePath(tokens[1])).size() != 0) {
+					out
+							.println("rm: "
+									+ tokens[1]
+									+ ": The folder is not empty");
+
+				} else {
+					fs.deleteDir(decoratePath(tokens[1]), false);
+				}
 			} else {
 				out.println("rmdir: " + tokens[1] + ": No such directory");
 			}
@@ -259,13 +269,12 @@ public class FSCliMain {
 		}
 	}
 
-
 	public static void main(String[] args) throws IOException,
 			TTransportException {
 
 		FSCliMain cli = new FSCliMain();
 		cli.run();
-//		cli.processLs(new String[]{"ls","/da"});
+		// cli.processLs(new String[]{"ls","/da"});
 		// System.out.println(System.getenv("USERNAME"));
 	}
 }
