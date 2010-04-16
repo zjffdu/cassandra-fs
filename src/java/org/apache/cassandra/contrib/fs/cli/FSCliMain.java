@@ -264,9 +264,8 @@ public class FSCliMain {
 			TTransportException {
 
 		FSCliMain cli = new FSCliMain();
-//		File root = new File("/data/product");
-//		cli.doAction(root);
-		 cli.run();
+		cli.run();
+//		cli.processLs(new String[]{"ls","/da"});
 		// System.out.println(System.getenv("USERNAME"));
 	}
 }

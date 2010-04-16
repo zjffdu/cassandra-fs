@@ -262,9 +262,10 @@ public class CassandraFacade {
 						columnFamily), new SlicePredicate().setSlice_range(
 						new SliceRange(new byte[0], new byte[0], false,
 								Integer.MAX_VALUE)));
-
-				Path path = new Path(key, attrColumn);
-				children.add(path);
+				if (attrColumn.size()!=0){
+					Path path = new Path(key, attrColumn);
+					children.add(path);
+				}
 
 			} else {
 				throw new RuntimeException("Do not support CF:'" + columnFamily
