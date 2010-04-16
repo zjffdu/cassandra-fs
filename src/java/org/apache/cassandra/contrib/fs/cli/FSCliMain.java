@@ -184,7 +184,7 @@ public class FSCliMain {
 			if (fs.existDir(decoratePath(tokens[1]))) {
 				if (fs.list(decoratePath(tokens[1])).size() != 0) {
 					out
-							.println("rm: "
+							.println("rmdir: "
 									+ tokens[1]
 									+ ": The folder is not empty");
 
