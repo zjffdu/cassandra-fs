@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.apache.cassandra.contrib.fs.permission.FsPermission;
 import org.apache.cassandra.contrib.fs.util.Bytes;
-import org.apache.cassandra.service.Column;
+import org.apache.cassandra.thrift.Column;
 
 public class Path {
 

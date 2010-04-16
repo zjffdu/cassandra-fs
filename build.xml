@@ -34,7 +34,7 @@
 	<property name="test.conf" value="${test.dir}/conf" />
 	<property name="test.name" value="Test*" />
 	<property name="dist.dir" value="build/dist" />
-	<property name="version" value="0.5.0" />
+	<property name="version" value="0.6.0" />
 	<property name="final.name" value="${ant.project.name}-${version}" />
 
 

@@ -31,6 +31,7 @@ elif [ -r $CASSANDRA_INCLUDE ]; then
     . $CASSANDRA_INCLUDE
 fi
 
+
 # Use JAVA_HOME if set, otherwise look for java in PATH
 if [ -x $JAVA_HOME/bin/java ]; then
     JAVA=$JAVA_HOME/bin/java
@@ -42,9 +43,13 @@ if [ -z $CLASSPATH ]; then
     echo "You must set the CLASSPATH var" >&2
     exit 1
 fi
+if [ $# -eq "0" ]; then
+    echo "Usage: `basename $0` <sstable>"
+    exit 2
+fi
 
 $JAVA -cp $CLASSPATH  -Dstorage-config=$CASSANDRA_CONF \
         -Dlog4j.configuration=log4j-tools.properties \
-        org.apache.cassandra.tools.SSTableImport "$@"
+        org.apache.cassandra.tools.SSTableExport "$1" -e
 
 # vi:ai sw=4 ts=4 tw=0 et

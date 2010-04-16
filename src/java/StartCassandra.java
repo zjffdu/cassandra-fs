@@ -1,4 +1,4 @@
-import org.apache.cassandra.service.CassandraDaemon;
+import org.apache.cassandra.thrift.CassandraDaemon;
 
 
 

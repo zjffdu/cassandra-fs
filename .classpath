@@ -13,17 +13,18 @@
 	<classpathentry kind="lib" path="lib/jline-0.9.94.jar"/>
 	<classpathentry kind="lib" path="lib/json_simple-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.6.jar" sourcepath="C:/Documents and Settings/t_zhanje/.m2/repository/junit/junit/4.6/junit-4.6-sources.jar"/>
-	<classpathentry kind="lib" path="lib/libthrift-r820831.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.15.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.5.8.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.5.8.jar"/>
 	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
-	<classpathentry kind="lib" path="lib/apache-cassandra-incubating-0.5.0.jar" sourcepath="/Cassandra-5.0"/>
-	<classpathentry kind="lib" path="lib/hector-0.5.0-9.jar" sourcepath="/hector-5cf91dc"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/google-collections-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-pool-1.5.3.jar"/>
 	<classpathentry kind="lib" path="lib/perf4j-0.9.12.jar"/>
+	<classpathentry kind="lib" path="lib/apache-cassandra-0.6.0-rc1.jar" sourcepath="/Cassandra-0.6.0-src"/>
+	<classpathentry kind="lib" path="lib/cassandra-javautils.jar"/>
+	<classpathentry kind="lib" path="lib/hector-0.6.0-10.jar" sourcepath="lib/hector-0.6.0-10-sources.jar"/>
+	<classpathentry kind="lib" path="lib/libthrift-r917130.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="build/eclipse"/>
 </classpath>

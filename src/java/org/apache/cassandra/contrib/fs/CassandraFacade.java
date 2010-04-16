@@ -7,20 +7,19 @@ import java.util.List;
 
 import me.prettyprint.cassandra.service.CassandraClientPool;
 import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
-import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.cassandra.service.Keyspace;
 import me.prettyprint.cassandra.service.PoolExhaustedException;
 
-import org.apache.cassandra.service.Column;
-import org.apache.cassandra.service.ColumnParent;
-import org.apache.cassandra.service.ColumnPath;
-import org.apache.cassandra.service.InvalidRequestException;
-import org.apache.cassandra.service.NotFoundException;
-import org.apache.cassandra.service.SlicePredicate;
-import org.apache.cassandra.service.SliceRange;
-import org.apache.cassandra.service.SuperColumn;
-import org.apache.cassandra.service.TimedOutException;
-import org.apache.cassandra.service.UnavailableException;
+import org.apache.cassandra.thrift.Column;
+import org.apache.cassandra.thrift.ColumnParent;
+import org.apache.cassandra.thrift.ColumnPath;
+import org.apache.cassandra.thrift.InvalidRequestException;
+import org.apache.cassandra.thrift.NotFoundException;
+import org.apache.cassandra.thrift.SlicePredicate;
+import org.apache.cassandra.thrift.SliceRange;
+import org.apache.cassandra.thrift.SuperColumn;
+import org.apache.cassandra.thrift.TimedOutException;
+import org.apache.cassandra.thrift.UnavailableException;
 import org.apache.thrift.TException;
 
 /**
@@ -58,18 +57,8 @@ public class CassandraFacade {
 
 		ClientConfiguration conf = new ClientConfiguration(clientConfFile
 				.getAbsolutePath());
-		CassandraHostConfigurator hostConfig = new CassandraHostConfigurator(
-				conf.getHosts());
-		hostConfig.setCassandraThriftSocketTimeout(conf
-				.getCassandraThriftSocketTimeout());
-		hostConfig.setExhaustedPolicy(conf.getExhaustedPolicy());
-		hostConfig.setMaxActive(conf.getMaxActive());
-		hostConfig.setMaxIdle(conf.getMaxIdle());
-		hostConfig.setMaxWaitTimeWhenExhausted(conf
-				.getMaxWaitTimeWhenExhausted());
-
 		clientPool = CassandraClientPoolFactory.getInstance().createNew(
-				hostConfig);
+				conf.getHosts().split(","));
 	}
 
 	public void put(String key, String column, byte[] value) throws IOException {
@@ -137,8 +126,8 @@ public class CassandraFacade {
 		// TODO split the two operation
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
-			ks.remove(key, new ColumnPath(FSConstants.FileCF, null, null));
-			ks.remove(key, new ColumnPath(FSConstants.FolderCF, null, null));
+			ks.remove(key, new ColumnPath(FSConstants.FileCF));
+			ks.remove(key, new ColumnPath(FSConstants.FolderCF));
 		} catch (Exception e) {
 			throw new IOException(e);
 		} finally {
@@ -157,8 +146,8 @@ public class CassandraFacade {
 		Keyspace ks = null;
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
-			ColumnPath columnPath = new ColumnPath(columnFamily, superColumn
-					.getBytes(), null);
+			ColumnPath columnPath = new ColumnPath(columnFamily).setSuper_column(superColumn
+					.getBytes());
 			ks.remove(key, columnPath);
 		} catch (Exception e) {
 			throw new IOException(e);
@@ -178,7 +167,7 @@ public class CassandraFacade {
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
 			Column column = ks.getColumn(key, new ColumnPath(
-					FSConstants.FolderCF, FSConstants.FolderFlag.getBytes(),
+					FSConstants.FolderCF).setSuper_column(FSConstants.FolderFlag.getBytes()).setColumn(
 					FSConstants.TypeAttr.getBytes()));
 
 		} catch (InvalidRequestException e) {
@@ -212,7 +201,7 @@ public class CassandraFacade {
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
 			Column column = ks.getColumn(key, new ColumnPath(
-					FSConstants.FileCF, null, FSConstants.ContentAttr
+					FSConstants.FileCF).setColumn(FSConstants.ContentAttr
 							.getBytes()));
 			return true;
 		} catch (InvalidRequestException e) {
@@ -255,8 +244,8 @@ public class CassandraFacade {
 
 			if (columnFamily.equals(FSConstants.FolderCF)) {
 				List<SuperColumn> result = ks.getSuperSlice(key,
-						new ColumnParent(columnFamily, null),
-						new SlicePredicate(null, new SliceRange(new byte[0],
+						new ColumnParent(columnFamily),
+						new SlicePredicate().setSlice_range(new SliceRange(new byte[0],
 								new byte[0], false, Integer.MAX_VALUE)));
 				for (SuperColumn sc : result) {
 					String name = new String(sc.name);
@@ -270,7 +259,7 @@ public class CassandraFacade {
 				}
 			} else if (columnFamily.equals(FSConstants.FileCF)) {
 				List<Column> attrColumn = ks.getSlice(key, new ColumnParent(
-						columnFamily, null), new SlicePredicate(null,
+						columnFamily), new SlicePredicate().setSlice_range(
 						new SliceRange(new byte[0], new byte[0], false,
 								Integer.MAX_VALUE)));
 
@@ -301,7 +290,7 @@ public class CassandraFacade {
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
 			List<Column> attrColumns = ks.getSlice(file, new ColumnParent(
-					FSConstants.FileCF, null), new SlicePredicate(null,
+					FSConstants.FileCF), new SlicePredicate().setSlice_range(
 					new SliceRange(new byte[0], new byte[0], false,
 							Integer.MAX_VALUE)));
 			return new Path(file, attrColumns);

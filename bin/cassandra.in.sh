@@ -36,16 +36,11 @@ for jar in $cassandra_home/lib/*.jar; do
     CLASSPATH=$CLASSPATH:$jar
 done
 
-CLASSPATH=$CLASSPATH:$jar;$cassandra_home/build/apache-cassandra-fs-0.5.0.jar
-
 # Arguments to pass to the JVM
 JVM_OPTS=" \
         -ea \
-        -Xdebug \
-        -Xrunjdwp:transport=dt_socket,server=y,address=8888,suspend=n \
         -Xms128M \
         -Xmx1G \
-        -XX:SurvivorRatio=8 \
         -XX:TargetSurvivorRatio=90 \
         -XX:+AggressiveOpts \
         -XX:+UseParNewGC \

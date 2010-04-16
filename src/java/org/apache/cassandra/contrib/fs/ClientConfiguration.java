@@ -5,8 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
-import me.prettyprint.cassandra.service.ExhaustedPolicy;
-
 import org.apache.log4j.Logger;
 
 public class ClientConfiguration {
@@ -16,7 +14,7 @@ public class ClientConfiguration {
 
 	private Properties properties;
 
-	private ExhaustedPolicy defaultExhaustedPolicy = ExhaustedPolicy.WHEN_EXHAUSTED_BLOCK;
+//	private CassandraClientPoolByHost.ExhaustedPolicy defaultExhaustedPolicy = CassandraClientPoolByHost.ExhaustedPolicy.WHEN_EXHAUSTED_BLOCK;
 
 	private String defaultHosts = "localhost:9160";
 
@@ -94,17 +92,17 @@ public class ClientConfiguration {
 		}
 	}
 
-	public ExhaustedPolicy getExhaustedPolicy() {
-		String exhaustedPolicy = properties
-				.getProperty(FSConstants.ExhaustedPolicy);
-		if (exhaustedPolicy == null) {
-			LOGGER.warn("'" + FSConstants.ExhaustedPolicy
-					+ "' is not provided, the default value will been used");
-			return defaultExhaustedPolicy;
-		} else {
-			return ExhaustedPolicy.valueOf(exhaustedPolicy);
-		}
-	}
+//	public ExhaustedPolicy getExhaustedPolicy() {
+//		String exhaustedPolicy = properties
+//				.getProperty(FSConstants.ExhaustedPolicy);
+//		if (exhaustedPolicy == null) {
+//			LOGGER.warn("'" + FSConstants.ExhaustedPolicy
+//					+ "' is not provided, the default value will been used");
+//			return defaultExhaustedPolicy;
+//		} else {
+//			return ExhaustedPolicy.valueOf(exhaustedPolicy);
+//		}
+//	}
 
 	public static void main(String[] args) {
 		Properties prop = new Properties();

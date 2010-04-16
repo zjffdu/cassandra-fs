@@ -53,7 +53,7 @@ public class FSCliMain {
 
 	// TODO handle more complex cases,such as spaces, quotation, check path
 	// validity
-	private void processCommand(String command) throws IOException {
+	public void processCommand(String command) throws IOException {
 		String[] tokens = command.split("\\s");
 		String cmd = tokens[0];
 		if (cmd.equalsIgnoreCase("ls")) {
@@ -259,17 +259,6 @@ public class FSCliMain {
 		}
 	}
 
-	private void doAction(File root) throws IOException {
-		for (File file : root.listFiles()) {
-			if (file.isDirectory()) {
-				doAction(file);
-			} else {
-				processCommand("copyFromLocal "
-						+ file.getAbsolutePath().substring(2) + " "
-						+ file.getAbsolutePath().substring(2));
-			}
-		}
-	}
 
 	public static void main(String[] args) throws IOException,
 			TTransportException {

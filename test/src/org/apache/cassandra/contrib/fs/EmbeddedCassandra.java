@@ -2,7 +2,7 @@ package org.apache.cassandra.contrib.fs;
 
 import java.io.IOException;
 
-import org.apache.cassandra.service.CassandraDaemon;
+import org.apache.cassandra.thrift.CassandraDaemon;
 import org.apache.thrift.transport.TTransportException;
 
 public class EmbeddedCassandra extends Thread {
