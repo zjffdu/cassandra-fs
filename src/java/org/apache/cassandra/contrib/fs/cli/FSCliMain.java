@@ -17,6 +17,7 @@ import org.apache.cassandra.contrib.fs.CassandraFileSystem;
 import org.apache.cassandra.contrib.fs.FSConstants;
 import org.apache.cassandra.contrib.fs.IFileSystem;
 import org.apache.cassandra.contrib.fs.Path;
+import org.apache.cassandra.contrib.fs.PathUtil;
 import org.apache.cassandra.contrib.fs.util.Bytes;
 import org.apache.commons.io.IOUtils;
 import org.apache.thrift.transport.TTransportException;
@@ -248,6 +249,7 @@ public class FSCliMain {
 
 	private String decoratePath(String path) {
 		path = path.replace("\\", "/");
+		path = PathUtil.removeDirSuffix(path);
 		if (path.equals(".")) {
 			return curWorkingDir;
 		} else if (path.equals("..")) {
