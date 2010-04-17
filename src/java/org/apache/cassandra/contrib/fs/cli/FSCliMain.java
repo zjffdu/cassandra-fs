@@ -39,7 +39,7 @@ public class FSCliMain {
 		this.reader.addCompletor(new FSCliCompleter());
 		this.reader.setBellEnabled(false);
 		this.fs = CassandraFileSystem.getInstance();
-		String os = System.getenv("OS");
+		String os = System.getProperty("os.name");
 		if (os.toLowerCase().contains("windows")) {
 			this.curWorkingDir = "/usr/" + System.getenv("USERNAME");
 		} else {
