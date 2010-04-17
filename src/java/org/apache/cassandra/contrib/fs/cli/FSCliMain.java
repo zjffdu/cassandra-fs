@@ -39,7 +39,13 @@ public class FSCliMain {
 		this.reader.addCompletor(new FSCliCompleter());
 		this.reader.setBellEnabled(false);
 		this.fs = CassandraFileSystem.getInstance();
-		this.curWorkingDir = "/usr/" + System.getenv("USERNAME");
+		String os = System.getenv("OS");
+		if (os.toLowerCase().contains("windows")) {
+			this.curWorkingDir = "/usr/" + System.getenv("USERNAME");
+		} else {
+			this.curWorkingDir = "/usr/" + System.getenv("USER");
+		}
+
 		this.fs.mkdir(curWorkingDir);
 	}
 
@@ -184,10 +190,8 @@ public class FSCliMain {
 		} else {
 			if (fs.existDir(decoratePath(tokens[1]))) {
 				if (fs.list(decoratePath(tokens[1])).size() != 0) {
-					out
-							.println("rmdir: "
-									+ tokens[1]
-									+ ": The folder is not empty");
+					out.println("rmdir: " + tokens[1]
+							+ ": The folder is not empty");
 
 				} else {
 					fs.deleteDir(decoratePath(tokens[1]), false);
