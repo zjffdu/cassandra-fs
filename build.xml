@@ -126,4 +126,42 @@
 		</javadoc>
 	</target>
 
+	<!-- The cassandra fs web site -->
+	<path id="tomcat.classpath">
+		<fileset dir="${env.TOMCAT_HOME}/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${env.TOMCAT_HOME}/bin">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	<property name="cfs_web_dir" value="${basedir}/contrib/cassandra_fs_web"/>
+	<property name="WebXms" value="512m"/>
+	<property name="WebXmx" value="1024m"/>
+	<property name="site.port" value="18080"/>
+	<property name="debug.site.port" value="10080"/>
+		
+	<target name="web">
+		<fail unless="env.TOMCAT_HOME" message="!!!Fail: not define TOMCAT_HOME"/>
+		<!-- Start Tomcat Java Process -->
+		<echo>Port - ${site.port} / debug port - ${debug.site.port}</echo>
+		<echo>Root - ${cfs_web_root}</echo>
+		<echo>Cassandra configuration folder - ${basedir}/conf</echo>
+		<echo>Run tomcat in - ${env.TOMCAT_HOME}</echo>
+
+		<java classname="org.apache.catalina.startup.Bootstrap" fork="true" maxmemory="${WebXmx}" dir="${cfs_web_dir}/ROOT" spawn="false">
+			<classpath refid="tomcat.classpath" />
+			<classpath refid="cassandra_fs.classpath" />
+			<jvmarg value="-Dcatalina.home=${env.TOMCAT_HOME}" />
+			<jvmarg value="-Dcatalina.base=${cfs_web_dir}" />
+			<jvmarg value="-Dstorage-config=${basedir}/conf" />
+			<jvmarg value="-Xms${WebXms}" />
+			<jvmarg value="-Xmx${WebXmx}" />
+			<sysproperty key="port" value="${site.port}" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${debug.site.port}" />
+			<jvmarg value="-Xdebug" />
+			<arg line="start" />
+		</java>
+	</target>
+	
 </project>
