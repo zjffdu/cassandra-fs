@@ -80,6 +80,7 @@ public class CfsSiteServlet extends HttpServlet{
         String path = getPath(request);
         try {
         	delete(path);
+        	writeSuccessful(resp,path);
 		} 
         catch (CfsSiteException e) {
 			outputException(resp,e);
