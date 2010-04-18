@@ -74,6 +74,27 @@ public class CfsSiteServlet extends HttpServlet{
 			outputException(resp,e);
 		}   
 	}
+	@Override
+	protected void doDelete(HttpServletRequest request, HttpServletResponse resp)
+			throws ServletException, IOException {
+        String path = getPath(request);
+        try {
+        	delete(path);
+		} 
+        catch (CfsSiteException e) {
+			outputException(resp,e);
+		}   
+	}
+	
+	private void delete(String path) throws CfsSiteException{
+		try {
+			CassandraFileSystem.getInstance().deleteFile(path);
+		} catch (TTransportException e) {
+			throw CfsSiteException.fromTTransportException(e);
+		} catch (IOException e) {
+			throw new CfsSiteException("IOException",e.getMessage());
+		}
+	}
 	private String getPath(HttpServletRequest request){
 		return request.getRequestURI();
 	}
