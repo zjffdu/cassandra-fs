@@ -145,7 +145,7 @@
 		<fail unless="env.TOMCAT_HOME" message="!!!Fail: not define TOMCAT_HOME"/>
 		<!-- Start Tomcat Java Process -->
 		<echo>Port - ${site.port} / debug port - ${debug.site.port}</echo>
-		<echo>Root - ${cfs_web_root}</echo>
+		<echo>Root - ${cfs_web_dir}/ROOT</echo>
 		<echo>Cassandra configuration folder - ${basedir}/conf</echo>
 		<echo>Run tomcat in - ${env.TOMCAT_HOME}</echo>
 
