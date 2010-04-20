@@ -181,9 +181,9 @@
    ~ disk.  Keep the data disks and the CommitLog disks separate for best
    ~ performance
   -->
-  <CommitLogDirectory>/var/lib/cassandra/commitlog</CommitLogDirectory>
+  <CommitLogDirectory>build/test/cassandra/commitlog</CommitLogDirectory>
   <DataFileDirectories>
-      <DataFileDirectory>/var/lib/cassandra/data</DataFileDirectory>
+      <DataFileDirectory>build/test/cassandra/data</DataFileDirectory>
   </DataFileDirectories>
 
 

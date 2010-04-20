@@ -1,12 +1,10 @@
 package org.apache.cassandra.contrib.fs.cli;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -252,8 +250,7 @@ public class FSCliMain {
 	}
 
 	private String decoratePath(String path) {
-		path = path.replace("\\", "/");
-		path = PathUtil.removeDirSuffix(path);
+		path = PathUtil.removeTrailingSlash(path);
 		if (path.equals(".")) {
 			return curWorkingDir;
 		} else if (path.equals("..")) {
