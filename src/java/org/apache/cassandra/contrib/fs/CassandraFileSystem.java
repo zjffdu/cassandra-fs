@@ -46,8 +46,12 @@ public class CassandraFileSystem implements IFileSystem {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#createFile(java.lang.String, byte[])
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.cassandra.contrib.fs.IFileSystem#createFile(java.lang.String,
+	 * byte[])
 	 */
 	public void createFile(String path, byte[] content) throws IOException {
 		PathUtil.checkFilePath(path);
@@ -84,8 +88,11 @@ public class CassandraFileSystem implements IFileSystem {
 				+ FSConstants.GroupAttr, FSConstants.DefaultGroup);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#deleteFile(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.cassandra.contrib.fs.IFileSystem#deleteFile(java.lang.String)
 	 */
 	public boolean deleteFile(String path) throws IOException {
 		PathUtil.checkFilePath(path);
@@ -101,8 +108,12 @@ public class CassandraFileSystem implements IFileSystem {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#deleteDir(java.lang.String, boolean)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.cassandra.contrib.fs.IFileSystem#deleteDir(java.lang.String,
+	 * boolean)
 	 */
 	public boolean deleteDir(String path, boolean recursive) throws IOException {
 		PathUtil.checkFilePath(path);
@@ -138,8 +149,11 @@ public class CassandraFileSystem implements IFileSystem {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#readFile(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.cassandra.contrib.fs.IFileSystem#readFile(java.lang.String)
 	 */
 	public byte[] readFile(String path) throws IOException {
 		PathUtil.checkFilePath(path);
@@ -149,7 +163,9 @@ public class CassandraFileSystem implements IFileSystem {
 				+ FSConstants.ContentAttr);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.apache.cassandra.contrib.fs.IFileSystem#mkdir(java.lang.String)
 	 */
 	public boolean mkdir(String path) throws IOException {
@@ -183,24 +199,41 @@ public class CassandraFileSystem implements IFileSystem {
 		return true;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.apache.cassandra.contrib.fs.IFileSystem#list(java.lang.String)
 	 */
 	public List<Path> list(String path) throws IOException {
 		PathUtil.checkDirPath(path);
 		PathUtil.checkFilePath(path);
+		List<Path> result = new ArrayList<Path>();
 		path = PathUtil.normalizePath(path);
 		if (existDir(path)) {
-			return facade.list(path, FSConstants.FolderCF, false);
+			result = facade.list(path, FSConstants.FolderCF, false);
 		} else if (existFile(path)) {
-			return facade.list(path, FSConstants.FileCF, false);
+			result = facade.list(path, FSConstants.FileCF, false);
 		} else {
-			return new ArrayList<Path>();
+			return result;
 		}
+
+		// set the max size length, the max size length is for cli formatting
+		int max = 0;
+		for (Path child : result) {
+			if ((child.getLength() + "").length() > max) {
+				max = (child.getLength() + "").length();
+			}
+		}
+		Path.MaxSizeLength = max;
+
+		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#listAll(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.cassandra.contrib.fs.IFileSystem#listAll(java.lang.String)
 	 */
 	public List<Path> listAll(String path) throws IOException {
 		PathUtil.checkDirPath(path);
@@ -209,8 +242,11 @@ public class CassandraFileSystem implements IFileSystem {
 		return facade.list(path, FSConstants.FolderCF, true);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#existDir(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.cassandra.contrib.fs.IFileSystem#existDir(java.lang.String)
 	 */
 	public boolean existDir(String path) throws IOException {
 		PathUtil.checkDirPath(path);
@@ -218,8 +254,11 @@ public class CassandraFileSystem implements IFileSystem {
 		return facade.list(path, FSConstants.FolderCF, true).size() != 0;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#existFile(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.cassandra.contrib.fs.IFileSystem#existFile(java.lang.String)
 	 */
 	public boolean existFile(String path) throws IOException {
 		PathUtil.checkFilePath(path);
@@ -227,7 +266,9 @@ public class CassandraFileSystem implements IFileSystem {
 		return facade.list(path, FSConstants.FileCF, true).size() != 0;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.apache.cassandra.contrib.fs.IFileSystem#exist(java.lang.String)
 	 */
 	public boolean exist(String path) throws IOException {
@@ -238,43 +279,19 @@ public class CassandraFileSystem implements IFileSystem {
 			TTransportException {
 		System.setProperty("storage-config", "conf");
 		IFileSystem fs = CassandraFileSystem.getInstance();
-		fs.mkdir("/data");
-		System.out.println(fs.exist("/data"));
-		
-		fs.deleteDir("/data",true);
-		System.out.println(fs.exist("/data"));
-		fs.createFile("/data/1.txt", Bytes.toBytes("hello world3"));
-		System.out.println(fs.exist("/data"));
-		System.out.println(fs.exist("/data/a.txt"));
-		 fs.deleteFile("/data/1.txt");
-		 System.out.println(fs.exist("/data/a.txt"));
-//		// List<Path> files = fs.list("/");
-//		// // for (String file : files) {
-//		// // System.out.println(file);
-//		// // }
-//		System.out.println(fs.existFile("/data/1.txt"));
-//		System.out.println(new String(fs.readFile("/data/1.txt")));
-//
-//		// // System.out.println(fs.existDir("/data"));
-//		// fs.deleteDir("/data");
-//		//
-//		List<Path> files = fs.list("/");
-//		for (Path path : files) {
-//			System.out.println(path);
-//		}
-//
-//		files = fs.list("/data");
-//		for (Path path : files) {
-//			System.out.println(path);
-//		}
+		List<Path> children = fs.list("/data");
+		List<Path> files = new ArrayList<Path>();
 
-		// System.out.println(fs.deleteDir("/usr", true));
-		// System.out.println(fs.);
-		// String content = new String(fs.readFile("/data/1.txt"));
-		// System.out.println(content);
-		// System.out.println(fs.existDir("/data"));
-		// System.out.println(fs.existFile("/data/1.txt"));
-		// System.out.println(new String(fs.readFile("/data/1.txt")));
-		// System.out.println(fs.existDir("/data/metrics2"));
+		// fs.mkdir("/data");
+		// System.out.println(fs.exist("/data"));
+		//		
+		// fs.deleteDir("/data",true);
+		// System.out.println(fs.exist("/data"));
+		// fs.createFile("/data/1.txt", Bytes.toBytes("hello world3"));
+		// System.out.println(fs.exist("/data"));
+		// System.out.println(fs.exist("/data/a.txt"));
+		// fs.deleteFile("/data/1.txt");
+		// System.out.println(fs.exist("/data/a.txt"));
+
 	}
 }

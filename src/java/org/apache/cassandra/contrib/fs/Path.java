@@ -10,6 +10,9 @@ import org.apache.cassandra.thrift.Column;
 
 public class Path {
 
+	// This value only will be used in cli for formatting
+	public static int MaxSizeLength;
+
 	private String url;
 
 	private String name;
@@ -89,7 +92,8 @@ public class Path {
 		builder.append(isDir ? "d " : "- ");
 		builder.append(String.format("%-8s", owner));
 		builder.append(String.format("%-14s", group));
-		builder.append(String.format("%-4d ", length));
+		builder.append(String
+				.format("%- " + (MaxSizeLength + 2) + "d", length));
 		builder.append(String.format("%16s", last_modification_time));
 		builder.append(" " + url);
 		return builder.toString();
@@ -97,6 +101,10 @@ public class Path {
 
 	public String getName() {
 		return this.name;
+	}
+
+	public int getLength() {
+		return this.length;
 	}
 
 	public static void main(String[] args) {
