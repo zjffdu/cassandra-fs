@@ -131,7 +131,6 @@ public class FSCliMain {
 						new FileOutputStream(new File(tokens[2])));
 			}
 		}
-
 	}
 
 	private void processTouch(String[] tokens) throws IOException {
@@ -205,19 +204,58 @@ public class FSCliMain {
 		if (tokens.length != 3) {
 			out.println("Usage: copyFromLocal <source> <dest>");
 		} else {
-			if (!new File(tokens[1]).exists()) {
-				out.println("Source '" + tokens[1] + "' does not exist");
+			File localFile = new File(decoratePath(tokens[1]));
+			if (localFile.exists()) {
+				visitNodeWhenCopyFromLocal(localFile, tokens);
 			} else {
-				byte[] content = IOUtils.toByteArray(new FileInputStream(
-						tokens[1]));
-				if (content.length > FSConstants.MaxFileSize) {
-					out.println("Size of file '" + tokens[1]
-							+ "' is too large, the size limitation is "
-							+ FSConstants.MaxFileSize);
+				out.println("Source '" + tokens[1] + "' does not exist");
+			}
+		}
+	}
+
+	private void visitNodeWhenCopyFromLocal(File file, String[] tokens)
+			throws FileNotFoundException, IOException {
+		if (file.isFile()) {
+			copyFileFromLocal(decoratePath(file.getAbsolutePath()),
+					decoratePath(tokens[2]
+							+ strSubtract(decoratePath(file.getAbsolutePath()),
+									decoratePath(tokens[1]))));
+		} else {
+			File[] files = file.listFiles();
+			for (File child : files) {
+				if (child.isFile()) {
+					copyFileFromLocal(decoratePath(child.getAbsolutePath()),
+							decoratePath(tokens[2]
+									+ strSubtract(decoratePath(child
+											.getAbsolutePath()),
+											decoratePath(tokens[1]))));
 				} else {
-					fs.createFile(decoratePath(tokens[2]), content);
+					visitNodeWhenCopyFromLocal(child, tokens);
 				}
 			}
+		}
+	}
+
+	private String strSubtract(String str1, String str2) {
+		int index = str1.indexOf(str2);
+		if (index == 0) {
+			return str1.substring(str2.length());
+		} else {
+			throw new RuntimeException("Can not subtract '" + str2 + "' from '"
+					+ str1 + "'");
+		}
+	}
+
+	private void copyFileFromLocal(String source, String dest)
+			throws FileNotFoundException, IOException {
+		byte[] content = IOUtils.toByteArray(new FileInputStream(
+				decoratePath(source)));
+		if (content.length > FSConstants.MaxFileSize) {
+			out.println("Size of file '" + source
+					+ "' is too large, the size limitation is "
+					+ FSConstants.MaxFileSize);
+		} else {
+			fs.createFile(decoratePath(dest), content);
 		}
 	}
 
@@ -250,7 +288,13 @@ public class FSCliMain {
 	}
 
 	private String decoratePath(String path) {
-		path = PathUtil.removeTrailingSlash(path);
+		path = PathUtil.normalizePath(path);
+		// transform windows path, remove the driver part
+		if (path.length() >= 2 && path.charAt(1) == ':' && path.charAt(0) < 'z'
+				&& path.charAt(0) > 'A') {
+			path = path.substring(2);
+		}
+
 		if (path.equals(".")) {
 			return curWorkingDir;
 		} else if (path.equals("..")) {
