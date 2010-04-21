@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import jline.ArgumentCompletor;
 import jline.ConsoleReader;
 
 import org.apache.cassandra.contrib.fs.CassandraFileSystem;
@@ -34,8 +35,28 @@ public class FSCliMain {
 
 	public FSCliMain() throws IOException, TTransportException {
 		this.reader = new ConsoleReader();
-		this.reader.addCompletor(new FSCliCompleter());
+		this.reader.addCompletor(new ArgumentCompletor(new FSComamndCompletor()));
+		this.reader.addCompletor(new ArgumentCompletor(new FSPathCompleter(this)));
 		this.reader.setBellEnabled(false);
+	}
+
+	public void setFileSystem(IFileSystem fs) {
+		this.fs = fs;
+	}
+
+	public IFileSystem getFileSystem() {
+		return this.fs;
+	}
+
+	public String getCWD() {
+		return this.curWorkingDir;
+	}
+
+	public void setCWD(String cwd) {
+		this.curWorkingDir = cwd;
+	}
+
+	public void run() throws IOException, TTransportException {
 		this.fs = CassandraFileSystem.getInstance();
 		String os = System.getProperty("os.name");
 		if (os.toLowerCase().contains("windows")) {
@@ -43,11 +64,8 @@ public class FSCliMain {
 		} else {
 			this.curWorkingDir = "/usr/" + System.getenv("USER");
 		}
-
 		this.fs.mkdir(curWorkingDir);
-	}
 
-	public void run() throws IOException {
 		out.println("Welcome to cassandra fs!");
 		out.println("Type 'help' for help. Type 'quit' or 'exit' to quit.");
 		String line = null;

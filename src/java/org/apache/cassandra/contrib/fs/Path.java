@@ -47,7 +47,7 @@ public class Path {
 
 	private String getNameFromURL(String url) {
 		int index = url.lastIndexOf("/");
-		if (index == 0) {
+		if (index == 0 && url.length() == 1) {
 			return "/";
 		} else {
 			return url.substring(index + 1);
@@ -92,8 +92,9 @@ public class Path {
 		builder.append(isDir ? "d " : "- ");
 		builder.append(String.format("%-8s", owner));
 		builder.append(String.format("%-14s", group));
-		builder.append(String
-				.format("%- " + (MaxSizeLength + 2) + "d", length));
+		builder
+				.append(String
+						.format("%- " + (MaxSizeLength + 2) + "d", length));
 		builder.append(String.format("%16s", last_modification_time));
 		builder.append(" " + url);
 		return builder.toString();
