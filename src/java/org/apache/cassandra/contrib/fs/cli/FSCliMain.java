@@ -58,7 +58,7 @@ public class FSCliMain {
 		this.curWorkingDir = cwd;
 	}
 
-	public void run() throws IOException, TTransportException {
+	public void connect() throws TTransportException, IOException{
 		this.fs = CassandraFileSystem.getInstance();
 		String os = System.getProperty("os.name");
 		if (os.toLowerCase().contains("windows")) {
@@ -67,7 +67,11 @@ public class FSCliMain {
 			this.curWorkingDir = "/usr/" + System.getenv("USER");
 		}
 		this.fs.mkdir(curWorkingDir);
-
+	}
+	
+	public void run() throws IOException, TTransportException {
+		connect();
+		
 		out.println("Welcome to cassandra fs!");
 		out.println("Type 'help' for help. Type 'quit' or 'exit' to quit.");
 		String line = null;
