@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jline.ArgumentCompletor;
+import jline.Completor;
 import jline.ConsoleReader;
 
 import org.apache.cassandra.contrib.fs.CassandraFileSystem;
@@ -35,8 +36,9 @@ public class FSCliMain {
 
 	public FSCliMain() throws IOException, TTransportException {
 		this.reader = new ConsoleReader();
-		this.reader.addCompletor(new ArgumentCompletor(new FSComamndCompletor()));
-		this.reader.addCompletor(new ArgumentCompletor(new FSPathCompleter(this)));
+		ArgumentCompletor completor = new ArgumentCompletor(new Completor[] {
+				new FSComamndCompletor(), new FSPathCompleter(this) });
+		this.reader.addCompletor(completor);
 		this.reader.setBellEnabled(false);
 	}
 
