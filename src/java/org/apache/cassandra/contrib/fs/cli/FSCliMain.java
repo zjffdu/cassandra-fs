@@ -123,13 +123,62 @@ public class FSCliMain {
 		if (tokens.length != 3) {
 			out.println("Usage: copyToLocal <source> <dest>");
 		} else {
-			if (!fs.existFile(decoratePath(tokens[1]))) {
-				out.println("No such file : " + tokens[1]);
+			boolean fileExist = fs.existFile(decoratePath(tokens[1]));
+			boolean dirExist = fs.existDir(decoratePath(tokens[1]));
+			if (!fileExist && !dirExist) {
+				out.println("No such file or folder : " + tokens[1]);
 			} else {
-				byte[] content = fs.readFile(decoratePath(tokens[1]));
-				IOUtils.write(content,
-						new FileOutputStream(new File(tokens[2])));
+				if (fileExist) {
+					byte[] content = fs.readFile(decoratePath(tokens[1]));
+					File localDestFile = new File(decoratePath(tokens[2]));
+					if (localDestFile.exists() && localDestFile.isFile()) {
+						out
+								.println("Local dest File '" + tokens[2]
+										+ "' exist");
+					} else {
+						if (localDestFile.isFile()) {
+							IOUtils.write(content, new FileOutputStream(
+									localDestFile));
+						} else {
+							IOUtils.write(content, new FileOutputStream(
+									localDestFile.getAbsolutePath()
+											+ "/"
+											+ new Path(decoratePath(tokens[1]))
+													.getName()));
+						}
+					}
+				} else {
+					File localFile = new File(decoratePath(tokens[2]));
+					if (localFile.exists() && localFile.list().length != 0) {
+						out.println("Local dest folder '" + tokens[2]
+								+ "' is not empty");
+					} else {
+						localFile.mkdirs();
+						List<Path> paths = fs.list(decoratePath(tokens[1]));
+						for (Path path : paths) {
+							visitNodeWhenCopyToLocal(path, tokens);
+						}
+					}
+				}
 			}
+		}
+	}
+
+	private void visitNodeWhenCopyToLocal(Path path, String[] tokens)
+			throws IOException {
+		if (path.isDir()) {
+			new File(decoratePath(tokens[2]
+					+ strSubtract(path.getURL(), decoratePath(tokens[1]))))
+					.mkdirs();
+			List<Path> subPaths = fs.list(path.getURL());
+			for (Path subPath : subPaths) {
+				visitNodeWhenCopyToLocal(subPath, tokens);
+			}
+		} else {
+			byte[] content = fs.readFile(decoratePath(path.getURL()));
+			IOUtils.write(content, new FileOutputStream(new File(
+					decoratePath(tokens[2]
+							+ strSubtract(path.getURL(), tokens[1])))));
 		}
 	}
 
