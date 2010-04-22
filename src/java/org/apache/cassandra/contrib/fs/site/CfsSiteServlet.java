@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -12,8 +13,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.cassandra.contrib.fs.CassandraFileSystem;
+import org.apache.cassandra.contrib.fs.Path;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.thrift.transport.TTransportException;
+
+import antlr.StringUtils;
 
 public class CfsSiteServlet extends HttpServlet{
 
@@ -21,25 +26,61 @@ public class CfsSiteServlet extends HttpServlet{
 	protected void doGet(HttpServletRequest request, HttpServletResponse resp)
 			throws ServletException, IOException {
 		String path = getPath(request);
-		try {
-			read(resp.getOutputStream(),path);
-		} catch (CfsSiteException e) {
-			outputException(resp, e);
+		if(path == null || path.equals("")){
+			outputException(resp, new CfsSiteException("BadFormat","Empty Path"));	
+			return ;
 		}
+		String action = getAction(request);
+		if(action == null){
+			try {	
+				read(resp.getOutputStream(),path);
+			} catch (CfsSiteException e) {
+				outputException(resp, e);
+			}			
+		}
+		else if (action.equalsIgnoreCase("ls")){
+			//ls the file and get the attr
+			try {
+				List<Path> subs = CassandraFileSystem.getInstance().list(path);
+				outputPaths(resp,path,subs);
+				return;
+			} catch (TTransportException e) {
+				outputException(resp, new CfsSiteException("BadOperation",e.getMessage()));	
+				return ;	
+			}
+		}
+	}
+	
+	private void outputPaths(HttpServletResponse resp,String dir,List<Path> subs){
+		resp.setContentType("text/xml");
+		try {
+			resp.getWriter().write("<Paths dir=\"" + dir + "\">\n");
+			for(Path sub : subs){
+				resp.getWriter().write("<Path>");
+					resp.getWriter().write(StringEscapeUtils.escapeXml(sub.getName()));
+				resp.getWriter().write("</Path>\n");	
+			}
+			resp.getWriter().write("</Paths>");		
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}	
+	}
+	private String getAction(HttpServletRequest request) {
+		return request.getParameter("action");
 	}
 	private void outputException(HttpServletResponse resp,CfsSiteException ex){
 		resp.setContentType("text/xml");
 		try {
-			//TODO: use more advanced xml generation
-			resp.getWriter().write("<Error>\n");
-				resp.getWriter().write("<Code>\n");
-					resp.getWriter().write(ex.getErrorCode());
-				resp.getWriter().write("</Code>\n");
+			resp.getOutputStream().write("<Error>\n".getBytes());
+				resp.getOutputStream().write("<Code>\n".getBytes());
+					resp.getOutputStream().write(StringEscapeUtils.escapeXml(ex.getErrorCode()).getBytes());
+				resp.getOutputStream().write("</Code>\n".getBytes());
 				
-				resp.getWriter().write("<Message>\n");
-					resp.getWriter().write(ex.getMessage()); //TODO: replace special chars
-				resp.getWriter().write("</Message>\n");
-			resp.getWriter().write("</Error>");	
+				resp.getOutputStream().write("<Message>\n".getBytes());
+					resp.getOutputStream().write(StringEscapeUtils.escapeXml(ex.getMessage()).getBytes()); 
+				resp.getOutputStream().write("</Message>\n".getBytes());
+			resp.getOutputStream().write("</Error>".getBytes());	
 		}
 		catch (IOException e) {
 			e.printStackTrace();
