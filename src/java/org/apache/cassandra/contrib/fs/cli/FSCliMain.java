@@ -58,7 +58,7 @@ public class FSCliMain {
 		this.curWorkingDir = cwd;
 	}
 
-	public void connect() throws TTransportException, IOException{
+	public void connect() throws TTransportException, IOException {
 		this.fs = CassandraFileSystem.getInstance();
 		String os = System.getProperty("os.name");
 		if (os.toLowerCase().contains("windows")) {
@@ -68,10 +68,10 @@ public class FSCliMain {
 		}
 		this.fs.mkdir(curWorkingDir);
 	}
-	
+
 	public void run() throws IOException, TTransportException {
 		connect();
-		
+
 		out.println("Welcome to cassandra fs!");
 		out.println("Type 'help' for help. Type 'quit' or 'exit' to quit.");
 		String line = null;
@@ -99,8 +99,8 @@ public class FSCliMain {
 			processNewFile(tokens);
 		} else if (cmd.equalsIgnoreCase("rm")) {
 			processRM(tokens);
-		} else if (cmd.equalsIgnoreCase("rmdir")) {
-			processRMDir(tokens);
+		} else if (cmd.equalsIgnoreCase("rmr")) {
+			processRMR(tokens);
 		} else if (cmd.equalsIgnoreCase("cat")) {
 			processCat(tokens);
 		} else if (cmd.equalsIgnoreCase("pwd")) {
@@ -121,10 +121,10 @@ public class FSCliMain {
 		out.println("cd <folder>");
 		out.println("copyToLocal <source> <dest>");
 		out.println("touch <file>...");
-		out.println("rm <file>...");
+		out.println("rm <file | folder>...");
+		out.println("rmr <file | folder>...");
 		out.println("newfile <file> <content>");
 		out.println("cat <file>...");
-		out.println("rmdir <dir>");
 		out.println("copyFromLocal <source> <dest>");
 		out.println("mkdir <path>");
 		out.println("ls <path>");
@@ -218,16 +218,42 @@ public class FSCliMain {
 
 	private void processRM(String[] tokens) throws IOException {
 		if (tokens.length < 2) {
-			out.println("Usage: rm <file>...");
+			out.println("Usage: rm <file | folder>...");
 		} else {
 			for (int i = 1; i < tokens.length; ++i) {
 				if (fs.existFile(decoratePath(tokens[i]))) {
 					fs.deleteFile(decoratePath(tokens[i]));
+				} else if (fs.existDir(decoratePath(tokens[i]))) {
+					if (fs.list(decoratePath(tokens[i])).size() != 0) {
+						out.println("rm: " + tokens[i]
+								+ ": The folder is not empty");
+					} else {
+						fs.deleteDir(decoratePath(tokens[1]), false);
+					}
 				} else {
-					out.println("rm: " + tokens[i] + " : No such file");
+					out.println("rm: " + tokens[i]
+							+ " : No such file or folder");
 				}
 			}
 		}
+	}
+
+	private void processRMR(String[] tokens) throws IOException {
+		if (tokens.length < 2) {
+			out.println("Usage: rmr <file | folder>...");
+		} else {
+			for (int i = 1; i < tokens.length; ++i) {
+				if (fs.existFile(decoratePath(tokens[i]))) {
+					fs.deleteFile(decoratePath(tokens[i]));
+				} else if (fs.existDir(decoratePath(tokens[i]))) {
+					fs.deleteDir(decoratePath(tokens[1]), true);
+				} else {
+					out.println("rmr: " + tokens[i]
+							+ " : No such file or folder");
+				}
+			}
+		}
+
 	}
 
 	private void processNewFile(String[] tokens) throws IOException {
@@ -250,24 +276,6 @@ public class FSCliMain {
 				} else {
 					out.println("cat: " + tokens[i] + ": No such file");
 				}
-			}
-		}
-	}
-
-	private void processRMDir(String[] tokens) throws IOException {
-		if (tokens.length != 2) {
-			out.println("Usage: rmdir <dir>");
-		} else {
-			if (fs.existDir(decoratePath(tokens[1]))) {
-				if (fs.list(decoratePath(tokens[1])).size() != 0) {
-					out.println("rmdir: " + tokens[1]
-							+ ": The folder is not empty");
-
-				} else {
-					fs.deleteDir(decoratePath(tokens[1]), false);
-				}
-			} else {
-				out.println("rmdir: " + tokens[1] + ": No such directory");
 			}
 		}
 	}

@@ -45,6 +45,6 @@ fi
 
 CLASSPATH=$CLASSPATH:$jar;$cassandra_home/build/apache-cassandra-fs-0.6.0.jar
 
-$JAVA -ea -cp $CLASSPATH -Dstorage-config=$CASSANDRA_CONF -Dfile.encoding=UTF-8 org.apache.cassandra.contrib.fs.cli.FSCliMain "$@"
+$JAVA -ea -Xmx1024m -cp $CLASSPATH -Dstorage-config=$CASSANDRA_CONF -Dfile.encoding=UTF-8 org.apache.cassandra.contrib.fs.cli.FSCliMain "$@"
 
 # vi:ai sw=4 ts=4 tw=0 et

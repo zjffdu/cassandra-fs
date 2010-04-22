@@ -23,7 +23,7 @@ if NOT DEFINED CASSANDRA_CONF set CASSANDRA_CONF=%CASSANDRA_HOME%\conf
 SET CASSANDRA_LIBS=%CASSANDRA_HOME%\lib
 
 FOR %%a IN (%CASSANDRA_HOME%\lib\*.jar) DO  call :append %%~fa
-java -cp %CASSANDRA_LIBS%;%CASSANDRA_HOME%\build\apache-cassandra-fs-0.6.0.jar;%CASSANDRA_HOME%\conf -Dstorage-config=%CASSANDRA_HOME%/conf -Dfile.encoding=UTF-8 org.apache.cassandra.contrib.fs.cli.FSCliMain
+java -Xmx1024m -cp %CASSANDRA_LIBS%;%CASSANDRA_HOME%\build\apache-cassandra-fs-0.6.0.jar;%CASSANDRA_HOME%\conf -Dstorage-config=%CASSANDRA_HOME%/conf -Dfile.encoding=UTF-8 org.apache.cassandra.contrib.fs.cli.FSCliMain
 
 :append
 SET CASSANDRA_LIBS=%CASSANDRA_LIBS%;%1%2
