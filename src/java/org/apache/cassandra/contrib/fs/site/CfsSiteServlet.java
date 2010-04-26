@@ -167,12 +167,13 @@ public class CfsSiteServlet extends HttpServlet{
 	private String read(OutputStream stream, String path) throws CfsSiteException{
 		InputStream is = null;
 		try {
-			byte[] bs = CassandraFileSystem.getInstance().readFile(path);
-			if(bs == null){
-				throw new CfsSiteException("NotExistFile",path);
-			}
+			// TODO huan to check the changes
+//			byte[] bs = CassandraFileSystem.getInstance().readFile(path);
+//			if(bs == null){
+//				throw new CfsSiteException("NotExistFile",path);
+//			}
 			//output
-			IOUtils.copy(new ByteArrayInputStream(bs), stream);
+			IOUtils.copy(CassandraFileSystem.getInstance().readFile(path), stream);
 		} catch (TTransportException e) {
 			throw CfsSiteException.fromTTransportException(e);
 		} catch (IOException e) {

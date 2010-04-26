@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,7 @@ public class FSCliMain {
 	// TODO handle more complex cases,such as spaces, quotation, check path
 	// validity
 	public void processCommand(String command) throws IOException {
-		String[] tokens = command.split("\\s");
+		String[] tokens = command.split("\\s+");
 		String cmd = tokens[0];
 		if (cmd.equalsIgnoreCase("ls")) {
 			processLs(tokens);
@@ -153,7 +154,7 @@ public class FSCliMain {
 				out.println("No such file or folder : " + tokens[1]);
 			} else {
 				if (fileExist) {
-					byte[] content = fs.readFile(decoratePath(tokens[1]));
+					InputStream in = fs.readFile(decoratePath(tokens[1]));
 					File localDestFile = new File(decoratePath(tokens[2]));
 					if (localDestFile.exists() && localDestFile.isFile()) {
 						out
@@ -161,10 +162,10 @@ public class FSCliMain {
 										+ "' exist");
 					} else {
 						if (localDestFile.isFile()) {
-							IOUtils.write(content, new FileOutputStream(
+							IOUtils.copy(in, new FileOutputStream(
 									localDestFile));
 						} else {
-							IOUtils.write(content, new FileOutputStream(
+							IOUtils.copy(in, new FileOutputStream(
 									localDestFile.getAbsolutePath()
 											+ "/"
 											+ new Path(decoratePath(tokens[1]))
@@ -199,8 +200,8 @@ public class FSCliMain {
 				visitNodeWhenCopyToLocal(subPath, tokens);
 			}
 		} else {
-			byte[] content = fs.readFile(decoratePath(path.getURL()));
-			IOUtils.write(content, new FileOutputStream(new File(
+			InputStream in = fs.readFile(decoratePath(path.getURL()));
+			IOUtils.copy(in, new FileOutputStream(new File(
 					decoratePath(tokens[2]
 							+ strSubtract(path.getURL(), tokens[1])))));
 		}
@@ -270,8 +271,7 @@ public class FSCliMain {
 		} else {
 			for (int i = 1; i < tokens.length; ++i) {
 				if (fs.existFile(decoratePath(tokens[i]))) {
-					String content = new String(fs
-							.readFile(decoratePath(tokens[i])));
+					String content = IOUtils.toString(fs.readFile(decoratePath(tokens[i])));
 					out.println(content);
 				} else {
 					out.println("cat: " + tokens[i] + ": No such file");
@@ -329,15 +329,7 @@ public class FSCliMain {
 
 	private void copyFileFromLocal(String source, String dest)
 			throws FileNotFoundException, IOException {
-		byte[] content = IOUtils.toByteArray(new FileInputStream(
-				decoratePath(source)));
-		if (content.length > FSConstants.MaxFileSize) {
-			out.println("Size of file '" + source
-					+ "' is too large, the size limitation is "
-					+ FSConstants.MaxFileSize);
-		} else {
-			fs.createFile(decoratePath(dest), content);
-		}
+		fs.createFile(decoratePath(dest), new FileInputStream(source));
 	}
 
 	private void processMkDir(String[] tokens) throws IOException {

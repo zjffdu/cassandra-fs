@@ -1,5 +1,7 @@
 package org.apache.cassandra.contrib.fs;
 
+import java.io.IOException;
+
 import org.apache.cassandra.contrib.fs.util.Helper;
 
 public class PathUtil {
@@ -37,21 +39,12 @@ public class PathUtil {
 		return removeTrailingSlash(path);
 	}
 
-	public static void checkDirPath(String path) {
-		if (Helper.isNullOrEmpty(path)){
-			throw new RuntimeException("Dir Path can not been empty or null");
+	public static void checkPath(String path) throws IOException{
+		if (Helper.isNullOrEmpty(path)) {
+			throw new IOException("Path can not been empty or null");
 		}
 		if (path.contains(":")) {
-			throw new RuntimeException("Path can not contains ':'");
-		}
-	}
-
-	public static void checkFilePath(String path) {
-		if (Helper.isNullOrEmpty(path)){
-			throw new RuntimeException("File Path can not been empty or null");
-		}
-		if (path.contains(":")) {
-			throw new RuntimeException("Path can not contains ':'");
+			throw new IOException("Path can not contains ':'");
 		}
 	}
 }

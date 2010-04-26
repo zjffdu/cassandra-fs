@@ -1,6 +1,7 @@
 package org.apache.cassandra.contrib.fs;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,9 +83,17 @@ public class FakedFileSystem implements IFileSystem {
 	}
 
 	@Override
-	public byte[] readFile(String path) throws IOException {
+	public InputStream readFile(String path) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public void createFile(String path, InputStream in) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 
 }

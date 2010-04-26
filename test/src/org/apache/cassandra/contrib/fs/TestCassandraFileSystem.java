@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import junit.framework.TestCase;
 
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.thrift.transport.TTransportException;
 
 public class TestCassandraFileSystem extends TestCase {
@@ -62,7 +64,8 @@ public class TestCassandraFileSystem extends TestCase {
 		String DummyContent = "dummy content";
 		fs.createFile("/data/a.txt", DummyContent.getBytes());
 		assertTrue(fs.existFile("/data/a.txt"));
-		assertTrue(new String(fs.readFile("/data/a.txt")).equals(DummyContent));
+		assertTrue(IOUtils.toString(fs.readFile("/data/a.txt")).equals(
+				DummyContent));
 
 		paths = fs.list("/data");
 		assertEquals(1, paths.size());
@@ -76,5 +79,17 @@ public class TestCassandraFileSystem extends TestCase {
 		// delete file
 		assertTrue(fs.deleteFile("/data/a.txt"));
 		assertEquals(0, fs.list("/data").size());
+
+		// create large file with mutiple blocks
+		StringBuilder builder = new StringBuilder();
+		Random rand = new Random();
+		for (int i = 0; i < 1024 * 1024; ++i) {
+			builder.append(i + ":" + rand.nextInt());
+		}
+		assertTrue(builder.toString().getBytes().length > FSConstants.BlockSize);
+		fs.createFile("/data/b.txt", builder.toString().getBytes());
+		assertTrue(fs.existFile("/data/b.txt"));
+		assertTrue(IOUtils.toString(fs.readFile("/data/b.txt")).equals(
+				builder.toString()));
 	}
 }

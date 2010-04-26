@@ -25,7 +25,7 @@ public class FSConstants {
 
 	// size limitation
 	public final static int MaxFileSize = 500 * 1024 * 1024;
-
+	public final static int BlockSize = 10 * 1024 * 1024;
 	// client property
 	public final static String Hosts = "cassandra.client.hosts";
 	public final static String ExhaustedPolicy = "";

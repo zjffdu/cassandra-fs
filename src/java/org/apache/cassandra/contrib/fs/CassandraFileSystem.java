@@ -1,8 +1,10 @@
 package org.apache.cassandra.contrib.fs;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -46,23 +48,22 @@ public class CassandraFileSystem implements IFileSystem {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.apache.cassandra.contrib.fs.IFileSystem#createFile(java.lang.String,
-	 * byte[])
-	 */
 	public void createFile(String path, byte[] content) throws IOException {
-		PathUtil.checkFilePath(path);
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		String parent = PathUtil.getParent(path);
 		if (!existDir(parent)) {
 			mkdir(parent);
 		}
 
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.ContentAttr
-				+ ":", content);
+		for (int i = 0; i < content.length / FSConstants.BlockSize + 1; ++i) {
+			int from = i * FSConstants.BlockSize;
+			int to = ((i + 1) * FSConstants.BlockSize > content.length) ? content.length
+					: (i + 1) * FSConstants.BlockSize;
+			facade.put(path, FSConstants.FileCF + ":" + FSConstants.ContentAttr
+					+ "_" + i, Arrays.copyOfRange(content, from, to));
+		}
+
 		facade.put(path, FSConstants.FileCF + ":" + FSConstants.TypeAttr, Bytes
 				.toBytes("File"));
 		facade.put(path, FSConstants.FileCF + ":" + FSConstants.LengthAttr,
@@ -88,14 +89,54 @@ public class CassandraFileSystem implements IFileSystem {
 				+ FSConstants.GroupAttr, FSConstants.DefaultGroup);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.apache.cassandra.contrib.fs.IFileSystem#deleteFile(java.lang.String)
-	 */
+	@Override
+	public void createFile(String path, InputStream in) throws IOException {
+		PathUtil.checkPath(path);
+		path = PathUtil.normalizePath(path);
+		String parent = PathUtil.getParent(path);
+		if (!existDir(parent)) {
+			mkdir(parent);
+		}
+
+		int length = 0;
+		byte[] buffer = new byte[FSConstants.BlockSize];
+		int index = 0;
+		int num = 0;
+		do {
+			num = in.read(buffer);
+			length += num;
+			facade.put(path, FSConstants.FileCF + ":" + FSConstants.ContentAttr
+					+ "_" + index++, buffer);
+		} while (num == FSConstants.BlockSize);
+
+		facade.put(path, FSConstants.FileCF + ":" + FSConstants.TypeAttr, Bytes
+				.toBytes("File"));
+		facade.put(path, FSConstants.FileCF + ":" + FSConstants.LengthAttr,
+				Bytes.toBytes(length));
+		facade.put(path, FSConstants.FileCF + ":" + FSConstants.LastModifyTime,
+				Bytes.toBytes(format.format(new Date())));
+		facade.put(path, FSConstants.FileCF + ":" + FSConstants.OwnerAttr,
+				FSConstants.DefaultOwner);
+		facade.put(path, FSConstants.FileCF + ":" + FSConstants.GroupAttr,
+				FSConstants.DefaultGroup);
+
+		// add meta data for parent, except the Content
+		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
+				+ FSConstants.TypeAttr, Bytes.toBytes("File"));
+		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
+				+ FSConstants.LengthAttr, Bytes.toBytes(length));
+		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
+				+ FSConstants.LastModifyTime, Bytes.toBytes(format
+				.format(new Date())));
+		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
+				+ FSConstants.OwnerAttr, FSConstants.DefaultOwner);
+		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
+				+ FSConstants.GroupAttr, FSConstants.DefaultGroup);
+
+	}
+
 	public boolean deleteFile(String path) throws IOException {
-		PathUtil.checkFilePath(path);
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		if (!existFile(path)) {
 			LOGGER.warn("File '" + path
@@ -108,15 +149,8 @@ public class CassandraFileSystem implements IFileSystem {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.apache.cassandra.contrib.fs.IFileSystem#deleteDir(java.lang.String,
-	 * boolean)
-	 */
 	public boolean deleteDir(String path, boolean recursive) throws IOException {
-		PathUtil.checkFilePath(path);
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		if (!exist(path)) {
 			LOGGER.warn("Folder '" + path
@@ -149,27 +183,24 @@ public class CassandraFileSystem implements IFileSystem {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.apache.cassandra.contrib.fs.IFileSystem#readFile(java.lang.String)
-	 */
-	public byte[] readFile(String path) throws IOException {
-		PathUtil.checkFilePath(path);
+	public byte[] readFileToBytes(String path) throws IOException {
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
-		LOGGER.debug("Read file '" + path + "'");
+		LOGGER.debug("Reading file '" + path + "'");
 		return facade.get(path, FSConstants.FileCF + ":"
 				+ FSConstants.ContentAttr);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#mkdir(java.lang.String)
-	 */
+	@Override
+	public InputStream readFile(String path) throws IOException {
+		PathUtil.checkPath(path);
+		path = PathUtil.normalizePath(path);
+		LOGGER.debug("Reading file '" + path + "'");
+		return new CassandraInputStream(path, facade);
+	}
+
 	public boolean mkdir(String path) throws IOException {
-		PathUtil.checkDirPath(path);
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		if (existDir(path)) {
 			LOGGER.warn("'" + path + "' is already existed");
@@ -199,14 +230,8 @@ public class CassandraFileSystem implements IFileSystem {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#list(java.lang.String)
-	 */
 	public List<Path> list(String path) throws IOException {
-		PathUtil.checkDirPath(path);
-		PathUtil.checkFilePath(path);
+		PathUtil.checkPath(path);
 		List<Path> result = new ArrayList<Path>();
 		path = PathUtil.normalizePath(path);
 		if (existDir(path)) {
@@ -229,48 +254,24 @@ public class CassandraFileSystem implements IFileSystem {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.apache.cassandra.contrib.fs.IFileSystem#listAll(java.lang.String)
-	 */
 	public List<Path> listAll(String path) throws IOException {
-		PathUtil.checkDirPath(path);
-		PathUtil.checkFilePath(path);
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		return facade.list(path, FSConstants.FolderCF, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.apache.cassandra.contrib.fs.IFileSystem#existDir(java.lang.String)
-	 */
 	public boolean existDir(String path) throws IOException {
-		PathUtil.checkDirPath(path);
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		return facade.list(path, FSConstants.FolderCF, true).size() != 0;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.apache.cassandra.contrib.fs.IFileSystem#existFile(java.lang.String)
-	 */
 	public boolean existFile(String path) throws IOException {
-		PathUtil.checkFilePath(path);
+		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		return facade.list(path, FSConstants.FileCF, true).size() != 0;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.apache.cassandra.contrib.fs.IFileSystem#exist(java.lang.String)
-	 */
 	public boolean exist(String path) throws IOException {
 		return existDir(path) || existFile(path);
 	}
@@ -294,4 +295,5 @@ public class CassandraFileSystem implements IFileSystem {
 		// System.out.println(fs.exist("/data/a.txt"));
 
 	}
+
 }

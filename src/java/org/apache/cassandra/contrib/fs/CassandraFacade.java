@@ -107,7 +107,7 @@ public class CassandraFacade {
 
 			Column result = ks.getColumn(key, columnPath);
 			return result.getValue();
-		} catch (Exception e) {
+		}catch (Exception e) {
 			throw new IOException(e);
 		} finally {
 			if (ks != null) {
@@ -201,7 +201,7 @@ public class CassandraFacade {
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
 			Column column = ks.getColumn(key, new ColumnPath(
-					FSConstants.FileCF).setColumn(FSConstants.ContentAttr
+					FSConstants.FileCF).setColumn((FSConstants.ContentAttr+"_0")
 							.getBytes()));
 			return true;
 		} catch (InvalidRequestException e) {
