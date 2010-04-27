@@ -329,7 +329,8 @@ public class FSCliMain {
 
 	private void copyFileFromLocal(String source, String dest)
 			throws FileNotFoundException, IOException {
-		fs.createFile(decoratePath(dest), new FileInputStream(source));
+		FileInputStream in=new FileInputStream(source);
+		fs.createFile(decoratePath(dest), in);
 	}
 
 	private void processMkDir(String[] tokens) throws IOException {

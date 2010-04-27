@@ -29,6 +29,8 @@ public class CassandraFileSystem implements IFileSystem {
 
 	private CassandraFacade facade;
 
+	private byte[] buffer = new byte[FSConstants.BlockSize];
+
 	public static IFileSystem getInstance() throws TTransportException,
 			IOException {
 		if (instance == null) {
@@ -99,15 +101,19 @@ public class CassandraFileSystem implements IFileSystem {
 		}
 
 		int length = 0;
-		byte[] buffer = new byte[FSConstants.BlockSize];
 		int index = 0;
 		int num = 0;
-		do {
+		while (true) {
 			num = in.read(buffer);
+			if (num == -1) {
+				break;
+			}
+			byte[] content=new byte[num];
+			System.arraycopy(buffer, 0, content, 0, num);
 			length += num;
 			facade.put(path, FSConstants.FileCF + ":" + FSConstants.ContentAttr
-					+ "_" + index++, buffer);
-		} while (num == FSConstants.BlockSize);
+					+ "_" + index++, content);
+		}
 
 		facade.put(path, FSConstants.FileCF + ":" + FSConstants.TypeAttr, Bytes
 				.toBytes("File"));
