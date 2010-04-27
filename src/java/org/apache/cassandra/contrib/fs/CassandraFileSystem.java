@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.cassandra.contrib.fs.util.Bytes;
+import org.apache.cassandra.thrift.NotFoundException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.transport.TTransportException;
 
@@ -64,8 +65,15 @@ public class CassandraFileSystem implements IFileSystem {
 			int from = i * FSConstants.BlockSize;
 			int to = ((i + 1) * FSConstants.BlockSize > content.length) ? content.length
 					: (i + 1) * FSConstants.BlockSize;
-			facade.put(path, FSConstants.FileCF + ":" + FSConstants.ContentAttr
-					+ "_" + i, Arrays.copyOfRange(content, from, to));
+			if (i == 0) {
+				facade.put(path, FSConstants.FileCF + ":"
+						+ FSConstants.ContentAttr, Arrays.copyOfRange(content,
+						from, to));
+			} else {
+				facade.put(path + "_$" + i, FSConstants.FileCF + ":"
+						+ FSConstants.ContentAttr, Arrays.copyOfRange(content,
+						from, to));
+			}
 		}
 
 		Map<byte[], byte[]> map = new HashMap<byte[], byte[]>();
@@ -111,8 +119,14 @@ public class CassandraFileSystem implements IFileSystem {
 			byte[] content = new byte[num];
 			System.arraycopy(buffer, 0, content, 0, num);
 			length += num;
-			facade.put(path, FSConstants.FileCF + ":" + FSConstants.ContentAttr
-					+ "_" + index++, content);
+			if (index == 0) {
+				facade.put(path, FSConstants.FileCF + ":"
+						+ FSConstants.ContentAttr, content);
+			} else {
+				facade.put(path + "_$" + index, FSConstants.FileCF + ":"
+						+ FSConstants.ContentAttr, content);
+			}
+			index++;
 		}
 		Map<byte[], byte[]> map = new HashMap<byte[], byte[]>();
 		map.put(Bytes.toBytes(FSConstants.TypeAttr), Bytes.toBytes("File"));
@@ -145,6 +159,9 @@ public class CassandraFileSystem implements IFileSystem {
 		}
 		String parent = PathUtil.getParent(path);
 		facade.delete(path);
+		for (int i = 1; facade.exist(path + "_$" + i); ++i) {
+			facade.delete(path + "_$" + i);
+		}
 		facade.delete(parent, FSConstants.FolderCF, path);
 		return true;
 	}
@@ -181,14 +198,6 @@ public class CassandraFileSystem implements IFileSystem {
 			deleteDir(path, false);
 			return true;
 		}
-	}
-
-	public byte[] readFileToBytes(String path) throws IOException {
-		PathUtil.checkPath(path);
-		path = PathUtil.normalizePath(path);
-		LOGGER.debug("Reading file '" + path + "'");
-		return facade.get(path, FSConstants.FileCF + ":"
-				+ FSConstants.ContentAttr);
 	}
 
 	@Override

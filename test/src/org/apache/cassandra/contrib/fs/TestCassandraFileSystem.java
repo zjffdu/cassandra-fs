@@ -83,7 +83,7 @@ public class TestCassandraFileSystem extends TestCase {
 		// create large file with mutiple blocks
 		StringBuilder builder = new StringBuilder();
 		Random rand = new Random();
-		for (int i = 0; i < 1024 * 1024; ++i) {
+		for (int i = 0; i < FSConstants.BlockSize; ++i) {
 			builder.append(i + ":" + rand.nextInt());
 		}
 		assertTrue(builder.toString().getBytes().length > FSConstants.BlockSize);
@@ -91,5 +91,9 @@ public class TestCassandraFileSystem extends TestCase {
 		assertTrue(fs.existFile("/data/b.txt"));
 		assertTrue(IOUtils.toString(fs.readFile("/data/b.txt")).equals(
 				builder.toString()));
+		
+		// delete the large file
+		assertTrue(fs.deleteFile("/data/b.txt"));
+		assertEquals(0, fs.list("/data").size());
 	}
 }

@@ -46,5 +46,8 @@ public class PathUtil {
 		if (path.contains(":")) {
 			throw new IOException("Path can not contains ':'");
 		}
+		if (path.contains("$")){
+			throw new IOException("Path can not contains '$'");
+		}
 	}
 }

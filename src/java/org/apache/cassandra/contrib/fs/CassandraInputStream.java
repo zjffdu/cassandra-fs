@@ -21,8 +21,9 @@ public class CassandraInputStream extends InputStream {
 		this.path = path;
 		this.facade = facade;
 		byte[] bytes = facade.get(path, FSConstants.FileCF + ":"
-				+ FSConstants.ContentAttr + "_" + blockIndex++);
+				+ FSConstants.ContentAttr);
 		this.curBlockStream = new ByteArrayInputStream(bytes);
+		this.blockIndex++;
 	}
 
 	@Override
@@ -32,8 +33,8 @@ public class CassandraInputStream extends InputStream {
 			return next;
 		} else {
 			try {
-				byte[] bytes = facade.get(path, FSConstants.FileCF + ":"
-						+ FSConstants.ContentAttr + "_" + blockIndex++);
+				byte[] bytes = facade.get(path + "_$" + blockIndex++,
+						FSConstants.FileCF + ":" + FSConstants.ContentAttr);
 				curBlockStream = new ByteArrayInputStream(bytes);
 				return curBlockStream.read();
 			} catch (IOException e) {
