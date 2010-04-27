@@ -6,7 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.cassandra.contrib.fs.util.Bytes;
 import org.apache.log4j.Logger;
@@ -66,29 +68,27 @@ public class CassandraFileSystem implements IFileSystem {
 					+ "_" + i, Arrays.copyOfRange(content, from, to));
 		}
 
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.TypeAttr, Bytes
-				.toBytes("File"));
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.LengthAttr,
-				Bytes.toBytes(content.length));
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.LastModifyTime,
-				Bytes.toBytes(format.format(new Date())));
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.OwnerAttr,
-				FSConstants.DefaultOwner);
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.GroupAttr,
-				FSConstants.DefaultGroup);
+		Map<byte[], byte[]> map = new HashMap<byte[], byte[]>();
+		map.put(Bytes.toBytes(FSConstants.TypeAttr), Bytes.toBytes("File"));
+		map.put(Bytes.toBytes(FSConstants.LengthAttr), Bytes
+				.toBytes(content.length));
+		map.put(Bytes.toBytes(FSConstants.LastModifyTime), Bytes.toBytes(format
+				.format(new Date())));
+		map.put(Bytes.toBytes(FSConstants.OwnerAttr), FSConstants.DefaultOwner);
+		map.put(Bytes.toBytes(FSConstants.GroupAttr), FSConstants.DefaultGroup);
+		facade.batchPut(path, FSConstants.FileCF, null, map, false);
 
 		// add meta data for parent, except the Content
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.TypeAttr, Bytes.toBytes("File"));
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.LengthAttr, Bytes.toBytes(content.length));
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.LastModifyTime, Bytes.toBytes(format
+		map = new HashMap<byte[], byte[]>();
+		map.put(Bytes.toBytes(FSConstants.TypeAttr), Bytes.toBytes("File"));
+		map.put(Bytes.toBytes(FSConstants.LengthAttr), Bytes
+				.toBytes(content.length));
+		map.put(Bytes.toBytes(FSConstants.LastModifyTime), Bytes.toBytes(format
 				.format(new Date())));
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.OwnerAttr, FSConstants.DefaultOwner);
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.GroupAttr, FSConstants.DefaultGroup);
+		map.put(Bytes.toBytes(FSConstants.OwnerAttr), FSConstants.DefaultOwner);
+		map.put(Bytes.toBytes(FSConstants.GroupAttr), FSConstants.DefaultGroup);
+
+		facade.batchPut(parent, FSConstants.FolderCF, path, map, true);
 	}
 
 	@Override
@@ -108,37 +108,31 @@ public class CassandraFileSystem implements IFileSystem {
 			if (num == -1) {
 				break;
 			}
-			byte[] content=new byte[num];
+			byte[] content = new byte[num];
 			System.arraycopy(buffer, 0, content, 0, num);
 			length += num;
 			facade.put(path, FSConstants.FileCF + ":" + FSConstants.ContentAttr
 					+ "_" + index++, content);
 		}
-
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.TypeAttr, Bytes
-				.toBytes("File"));
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.LengthAttr,
-				Bytes.toBytes(length));
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.LastModifyTime,
-				Bytes.toBytes(format.format(new Date())));
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.OwnerAttr,
-				FSConstants.DefaultOwner);
-		facade.put(path, FSConstants.FileCF + ":" + FSConstants.GroupAttr,
-				FSConstants.DefaultGroup);
+		Map<byte[], byte[]> map = new HashMap<byte[], byte[]>();
+		map.put(Bytes.toBytes(FSConstants.TypeAttr), Bytes.toBytes("File"));
+		map.put(Bytes.toBytes(FSConstants.LengthAttr), Bytes.toBytes(length));
+		map.put(Bytes.toBytes(FSConstants.LastModifyTime), Bytes.toBytes(format
+				.format(new Date())));
+		map.put(Bytes.toBytes(FSConstants.OwnerAttr), FSConstants.DefaultOwner);
+		map.put(Bytes.toBytes(FSConstants.GroupAttr), FSConstants.DefaultGroup);
+		facade.batchPut(path, FSConstants.FileCF, null, map, false);
 
 		// add meta data for parent, except the Content
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.TypeAttr, Bytes.toBytes("File"));
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.LengthAttr, Bytes.toBytes(length));
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.LastModifyTime, Bytes.toBytes(format
+		map = new HashMap<byte[], byte[]>();
+		map.put(Bytes.toBytes(FSConstants.TypeAttr), Bytes.toBytes("File"));
+		map.put(Bytes.toBytes(FSConstants.LengthAttr), Bytes.toBytes(length));
+		map.put(Bytes.toBytes(FSConstants.LastModifyTime), Bytes.toBytes(format
 				.format(new Date())));
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.OwnerAttr, FSConstants.DefaultOwner);
-		facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-				+ FSConstants.GroupAttr, FSConstants.DefaultGroup);
+		map.put(Bytes.toBytes(FSConstants.OwnerAttr), FSConstants.DefaultOwner);
+		map.put(Bytes.toBytes(FSConstants.GroupAttr), FSConstants.DefaultGroup);
 
+		facade.batchPut(parent, FSConstants.FolderCF, path, map, true);
 	}
 
 	public boolean deleteFile(String path) throws IOException {
@@ -220,17 +214,18 @@ public class CassandraFileSystem implements IFileSystem {
 		facade.put(path, FSConstants.FolderCF + ":" + FSConstants.FolderFlag
 				+ ":" + FSConstants.TypeAttr, Bytes.toBytes("Dummy"));
 		if (parent != null) {
-			facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-					+ FSConstants.TypeAttr, Bytes.toBytes("Folder"));
-			facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-					+ FSConstants.LengthAttr, Bytes.toBytes(0));
-			facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-					+ FSConstants.LastModifyTime, Bytes.toBytes(format
-					.format(new Date())));
-			facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-					+ FSConstants.OwnerAttr, FSConstants.DefaultOwner);
-			facade.put(parent, FSConstants.FolderCF + ":" + path + ":"
-					+ FSConstants.GroupAttr, FSConstants.DefaultGroup);
+			Map<byte[], byte[]> map = new HashMap<byte[], byte[]>();
+			map.put(Bytes.toBytes(FSConstants.TypeAttr), Bytes
+					.toBytes("Folder"));
+			map.put(Bytes.toBytes(FSConstants.LengthAttr), Bytes.toBytes(0));
+			map.put(Bytes.toBytes(FSConstants.LastModifyTime), Bytes
+					.toBytes(format.format(new Date())));
+			map.put(Bytes.toBytes(FSConstants.OwnerAttr),
+					FSConstants.DefaultOwner);
+			map.put(Bytes.toBytes(FSConstants.GroupAttr),
+					FSConstants.DefaultGroup);
+
+			facade.batchPut(parent, FSConstants.FolderCF, path, map, true);
 		}
 		LOGGER.debug("Creat dir '" + path + "' succesfully");
 		return true;

@@ -3,13 +3,16 @@ package org.apache.cassandra.contrib.fs;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.prettyprint.cassandra.service.CassandraClientPool;
 import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
 import me.prettyprint.cassandra.service.Keyspace;
 import me.prettyprint.cassandra.service.PoolExhaustedException;
 
+import org.apache.cassandra.contrib.fs.util.Bytes;
 import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.ColumnParent;
 import org.apache.cassandra.thrift.ColumnPath;
@@ -81,6 +84,47 @@ public class CassandraFacade {
 		}
 	}
 
+	// Support only one superColumnOnly at one time
+	public void batchPut(String key, String cfName, String colName, Map<byte[], byte[]> map,
+			boolean isSuperColumn) throws IOException {
+		Keyspace ks = null;
+		try {
+			Map<String, List<Column>> cfMap = new HashMap<String, List<Column>>();
+			Map<String, List<SuperColumn>> superCFMap=new HashMap<String, List<SuperColumn>>();
+			
+			if (!isSuperColumn) {
+				List<Column> columns = new ArrayList<Column>();
+				for (Map.Entry<byte[], byte[]> entry : map.entrySet()) {
+					Column column = new Column().setName(
+							entry.getKey()).setValue(
+							entry.getValue());
+					columns.add(column);
+				}
+				cfMap.put(cfName, columns);
+			}else{
+				List<SuperColumn> superColumns=new ArrayList<SuperColumn>();
+				SuperColumn superColumn=new SuperColumn().setName(Bytes.toBytes(colName));
+				for (Map.Entry<byte[], byte[]> entry:map.entrySet()){
+					superColumn.addToColumns(new Column().setName(entry.getKey()).setValue(entry.getValue()));
+				}
+				superColumns.add(superColumn);
+				superCFMap.put(cfName, superColumns);
+			}
+			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
+			ks.batchInsert(key, cfMap, superCFMap);
+		} catch (Exception e) {
+			throw new IOException(e);
+		} finally {
+			if (ks != null) {
+				try {
+					clientPool.releaseKeyspace(ks);
+				} catch (Exception e) {
+					throw new IOException(e);
+				}
+			}
+		}
+	}
+
 	private ColumnPath extractColumnPath(String column) throws IOException {
 		String[] subColumns = column.split(":");
 		ColumnPath columnPath = new ColumnPath();
@@ -107,7 +151,7 @@ public class CassandraFacade {
 
 			Column result = ks.getColumn(key, columnPath);
 			return result.getValue();
-		}catch (Exception e) {
+		} catch (Exception e) {
 			throw new IOException(e);
 		} finally {
 			if (ks != null) {
@@ -146,8 +190,8 @@ public class CassandraFacade {
 		Keyspace ks = null;
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
-			ColumnPath columnPath = new ColumnPath(columnFamily).setSuper_column(superColumn
-					.getBytes());
+			ColumnPath columnPath = new ColumnPath(columnFamily)
+					.setSuper_column(superColumn.getBytes());
 			ks.remove(key, columnPath);
 		} catch (Exception e) {
 			throw new IOException(e);
@@ -167,7 +211,8 @@ public class CassandraFacade {
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
 			Column column = ks.getColumn(key, new ColumnPath(
-					FSConstants.FolderCF).setSuper_column(FSConstants.FolderFlag.getBytes()).setColumn(
+					FSConstants.FolderCF).setSuper_column(
+					FSConstants.FolderFlag.getBytes()).setColumn(
 					FSConstants.TypeAttr.getBytes()));
 
 		} catch (InvalidRequestException e) {
@@ -200,9 +245,10 @@ public class CassandraFacade {
 
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
-			Column column = ks.getColumn(key, new ColumnPath(
-					FSConstants.FileCF).setColumn((FSConstants.ContentAttr+"_0")
-							.getBytes()));
+			Column column = ks.getColumn(key,
+					new ColumnPath(FSConstants.FileCF)
+							.setColumn((FSConstants.ContentAttr + "_0")
+									.getBytes()));
 			return true;
 		} catch (InvalidRequestException e) {
 			throw new IOException(e);
@@ -243,10 +289,12 @@ public class CassandraFacade {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
 
 			if (columnFamily.equals(FSConstants.FolderCF)) {
-				List<SuperColumn> result = ks.getSuperSlice(key,
-						new ColumnParent(columnFamily),
-						new SlicePredicate().setSlice_range(new SliceRange(new byte[0],
-								new byte[0], false, Integer.MAX_VALUE)));
+				List<SuperColumn> result = ks
+						.getSuperSlice(key, new ColumnParent(columnFamily),
+								new SlicePredicate()
+										.setSlice_range(new SliceRange(
+												new byte[0], new byte[0],
+												false, Integer.MAX_VALUE)));
 				for (SuperColumn sc : result) {
 					String name = new String(sc.name);
 					List<Column> attributes = sc.getColumns();
@@ -259,10 +307,10 @@ public class CassandraFacade {
 				}
 			} else if (columnFamily.equals(FSConstants.FileCF)) {
 				List<Column> attrColumn = ks.getSlice(key, new ColumnParent(
-						columnFamily), new SlicePredicate().setSlice_range(
-						new SliceRange(new byte[0], new byte[0], false,
-								Integer.MAX_VALUE)));
-				if (attrColumn.size()!=0){
+						columnFamily), new SlicePredicate()
+						.setSlice_range(new SliceRange(new byte[0],
+								new byte[0], false, Integer.MAX_VALUE)));
+				if (attrColumn.size() != 0) {
 					Path path = new Path(key, attrColumn);
 					children.add(path);
 				}
@@ -291,9 +339,9 @@ public class CassandraFacade {
 		try {
 			ks = clientPool.borrowClient().getKeyspace(FSConstants.KeySpace);
 			List<Column> attrColumns = ks.getSlice(file, new ColumnParent(
-					FSConstants.FileCF), new SlicePredicate().setSlice_range(
-					new SliceRange(new byte[0], new byte[0], false,
-							Integer.MAX_VALUE)));
+					FSConstants.FileCF), new SlicePredicate()
+					.setSlice_range(new SliceRange(new byte[0], new byte[0],
+							false, Integer.MAX_VALUE)));
 			return new Path(file, attrColumns);
 		} catch (Exception e) {
 			throw new IOException(e);

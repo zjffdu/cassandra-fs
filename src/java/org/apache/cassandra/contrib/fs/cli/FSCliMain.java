@@ -83,10 +83,9 @@ public class FSCliMain {
 		}
 	}
 
-	// TODO handle more complex cases,such as spaces, quotation, check path
-	// validity
+	
 	public void processCommand(String command) throws IOException {
-		String[] tokens = command.split("\\s+");
+		String[] tokens = parseCommand(command);
 		String cmd = tokens[0];
 		if (cmd.equalsIgnoreCase("ls")) {
 			processLs(tokens);
@@ -115,6 +114,12 @@ public class FSCliMain {
 		} else {
 			out.println("Can not recognize command '" + cmd + "'");
 		}
+	}
+
+	// TODO handle more complex cases,such as spaces, quotation, check path
+	// validity
+	private String[] parseCommand(String command) {
+		return command.split("\\s+");
 	}
 
 	private void processHelp(String[] tokens) {
