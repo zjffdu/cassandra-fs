@@ -205,7 +205,7 @@ public class CassandraFileSystem implements IFileSystem {
 		PathUtil.checkPath(path);
 		path = PathUtil.normalizePath(path);
 		LOGGER.debug("Reading file '" + path + "'");
-		return new CassandraInputStream(path, facade);
+		return new CFileInputStream(path, facade);
 	}
 
 	public boolean mkdir(String path) throws IOException {
