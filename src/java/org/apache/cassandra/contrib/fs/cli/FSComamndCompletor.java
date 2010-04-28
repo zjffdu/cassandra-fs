@@ -5,7 +5,7 @@ import jline.SimpleCompletor;
 public class FSComamndCompletor extends SimpleCompletor {
 
 	private static final String[] commands = { "ls", "rm", "rmr",
-			"copyFromLocal", "copyToLocal", "newFile", "cd", "touch", "exit", "mkdir",
+			"copyFromLocal", "copyToLocal", "copyFromHDFS","newFile", "cd", "touch", "exit", "mkdir",
 			"help", "quit", };
 
 	public FSComamndCompletor(String[] candidateStrings) {

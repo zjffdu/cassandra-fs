@@ -28,33 +28,34 @@ public class Test {
 		}
 	}
 
-	static void test() throws IOException{
-		InputStream in=new FileInputStream("/weekly/weekly_all.xls");
-		byte[] bytes=new byte[FSConstants.BlockSize];
-		int n=0;
+	static void test() throws IOException {
+		InputStream in = new FileInputStream("/weekly/weekly_all.xls");
+		byte[] bytes = new byte[FSConstants.BlockSize];
+		int n = 0;
 		n = in.read(bytes);
 		System.out.println(n);
 	}
-	
+
 	public static void main(String[] args) throws IllegalStateException,
 			PoolExhaustedException, Exception {
 		CassandraClientPool clientPool = CassandraClientPoolFactory
 				.getInstance().createNew(new String[] { "localhost:9160" });
-		 FSCliMain cli = new FSCliMain();
-		 cli.connect();
-		 cli.processCommand("copyFromLocal /data/product /data");
-		
-//		test();
-//		int[] ints=new int[FSConstants.BlockSize];
-//		System.out.println(ints.length);
-//		TTransport tr = new TSocket("metrics-stage-06", 9160, 60000);
-//		TProtocol proto = new TBinaryProtocol(tr);
-//		Cassandra.Client client = new Cassandra.Client(proto);
-//		try {
-//			tr.open();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+		FSCliMain cli = new FSCliMain();
+		cli.connect();
+		cli
+				.processCommand("copyFromHDFS hdfs://metrics-stage-01:9000/data/jeff/input_test /data/jeff/input_test");
+
+		// test();
+		// int[] ints=new int[FSConstants.BlockSize];
+		// System.out.println(ints.length);
+		// TTransport tr = new TSocket("metrics-stage-06", 9160, 60000);
+		// TProtocol proto = new TBinaryProtocol(tr);
+		// Cassandra.Client client = new Cassandra.Client(proto);
+		// try {
+		// tr.open();
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
 
 		// List<byte[]> columns = new ArrayList<byte[]>();
 		// columns.add(FSConstants.ContentAttr.getBytes());
@@ -80,7 +81,7 @@ public class Test {
 		// System.out.println(p.getURL());
 		// }
 
-//		System.out.println(java.nio.charset.Charset.defaultCharset().name());
+		// System.out.println(java.nio.charset.Charset.defaultCharset().name());
 
 		// File[] files=new File("E:\\Music").listFiles();
 		// for (File file:files){

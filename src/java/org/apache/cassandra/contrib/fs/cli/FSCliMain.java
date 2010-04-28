@@ -20,7 +20,10 @@ import org.apache.cassandra.contrib.fs.IFileSystem;
 import org.apache.cassandra.contrib.fs.Path;
 import org.apache.cassandra.contrib.fs.PathUtil;
 import org.apache.cassandra.contrib.fs.util.Bytes;
+import org.apache.cassandra.contrib.fs.util.HDFSFileSystem;
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.thrift.transport.TTransportException;
 
 public class FSCliMain {
@@ -83,7 +86,6 @@ public class FSCliMain {
 		}
 	}
 
-	
 	public void processCommand(String command) throws IOException {
 		String[] tokens = parseCommand(command);
 		String cmd = tokens[0];
@@ -95,6 +97,8 @@ public class FSCliMain {
 			processCopyFromLocal(tokens);
 		} else if (cmd.equalsIgnoreCase("copytolocal")) {
 			processCopyToLocal(tokens);
+		} else if (cmd.equalsIgnoreCase("copyfromhdfs")) {
+			processCopyFromHDFS(tokens);
 		} else if (cmd.equalsIgnoreCase("newfile")) {
 			processNewFile(tokens);
 		} else if (cmd.equalsIgnoreCase("rm")) {
@@ -116,6 +120,40 @@ public class FSCliMain {
 		}
 	}
 
+	private void processCopyFromHDFS(String[] tokens) throws IOException {
+		if (tokens.length != 3) {
+			out.println("copyFromHDFS <source> <dest>");
+		} else {
+			String hdfsURI = getHDFSURI(tokens[1]);
+			FileSystem hdfsFS = HDFSFileSystem.getFileSystem(hdfsURI);
+			visitNodeWhenCopyFromHDFS(hdfsFS,tokens[1], tokens);
+		}
+	}
+
+	private void visitNodeWhenCopyFromHDFS(FileSystem hdfsFS, String source,String[] tokens) throws IOException {
+		org.apache.hadoop.fs.Path sourcePath=new org.apache.hadoop.fs.Path(source);
+		if (hdfsFS.exists(sourcePath)){
+			if (hdfsFS.isFile(sourcePath)){
+				fs.createFile(tokens[2]+strSubtract(source, tokens[1]), hdfsFS.open(sourcePath));
+			}else{
+				FileStatus[] children=hdfsFS.listStatus(sourcePath);
+				for (FileStatus child : children){
+					visitNodeWhenCopyFromHDFS(hdfsFS, child.getPath().toString(), tokens);
+				}
+			}
+		}else{
+			out.println("The source '"+tokens[1]+"' does not exist!");
+		}
+	}
+
+	private String getHDFSURI(String url) throws IOException {
+		if (url.toLowerCase().startsWith("hdfs://")) {
+			int index = url.indexOf("/", 7);
+			return url.substring(0, index);
+		}
+		throw new IOException("Invalide hdfs path:" + url);
+	}
+
 	// TODO handle more complex cases,such as spaces, quotation, check path
 	// validity
 	private String[] parseCommand(String command) {
@@ -132,6 +170,7 @@ public class FSCliMain {
 		out.println("newfile <file> <content>");
 		out.println("cat <file>...");
 		out.println("copyFromLocal <source> <dest>");
+		out.println("copyFromHDFS <source> <dest>");
 		out.println("mkdir <path>");
 		out.println("ls <path>");
 	}
@@ -167,14 +206,14 @@ public class FSCliMain {
 										+ "' exist");
 					} else {
 						if (localDestFile.isFile()) {
-							IOUtils.copy(in, new FileOutputStream(
-									localDestFile));
+							IOUtils.copy(in,
+									new FileOutputStream(localDestFile));
 						} else {
-							IOUtils.copy(in, new FileOutputStream(
-									localDestFile.getAbsolutePath()
-											+ "/"
-											+ new Path(decoratePath(tokens[1]))
-													.getName()));
+							IOUtils.copy(in, new FileOutputStream(localDestFile
+									.getAbsolutePath()
+									+ "/"
+									+ new Path(decoratePath(tokens[1]))
+											.getName()));
 						}
 					}
 				} else {
@@ -276,7 +315,8 @@ public class FSCliMain {
 		} else {
 			for (int i = 1; i < tokens.length; ++i) {
 				if (fs.existFile(decoratePath(tokens[i]))) {
-					String content = IOUtils.toString(fs.readFile(decoratePath(tokens[i])));
+					String content = IOUtils.toString(fs
+							.readFile(decoratePath(tokens[i])));
 					out.println(content);
 				} else {
 					out.println("cat: " + tokens[i] + ": No such file");
@@ -334,7 +374,7 @@ public class FSCliMain {
 
 	private void copyFileFromLocal(String source, String dest)
 			throws FileNotFoundException, IOException {
-		FileInputStream in=new FileInputStream(source);
+		FileInputStream in = new FileInputStream(source);
 		fs.createFile(decoratePath(dest), in);
 	}
 
