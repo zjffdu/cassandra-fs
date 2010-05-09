@@ -87,40 +87,44 @@ public class FSCliMain {
 		}
 	}
 
-	public void processCommand(String command) throws IOException {
+	public void processCommand(String command) {
 		String[] tokens = parseCommand(command);
 		String cmd = tokens[0];
-		if (cmd.equalsIgnoreCase("ls")) {
-			processLs(tokens);
-		} else if (cmd.equalsIgnoreCase("mkdir")) {
-			processMkDir(tokens);
-		} else if (cmd.equalsIgnoreCase("copyfromlocal")) {
-			processCopyFromLocal(tokens);
-		} else if (cmd.equalsIgnoreCase("copytolocal")) {
-			processCopyToLocal(tokens);
-		} else if (cmd.equalsIgnoreCase("copyfromhdfs")) {
-			processCopyFromHDFS(tokens);
-		} else if (cmd.equalsIgnoreCase("copytohdfs")) {
-			processCopyToHDFS(tokens);
-		} else if (cmd.equalsIgnoreCase("newfile")) {
-			processNewFile(tokens);
-		} else if (cmd.equalsIgnoreCase("rm")) {
-			processRM(tokens);
-		} else if (cmd.equalsIgnoreCase("rmr")) {
-			processRMR(tokens);
-		} else if (cmd.equalsIgnoreCase("cat")) {
-			processCat(tokens);
-		} else if (cmd.equalsIgnoreCase("pwd")) {
-			out.println(curWorkingDir);
-		} else if (cmd.equalsIgnoreCase("cd")) {
-			processCD(tokens);
-		} else if (cmd.equalsIgnoreCase("touch")) {
-			processTouch(tokens);
-		} else if (cmd.equalsIgnoreCase("help")) {
-			processHelp(tokens);
-		} else {
-			out.println("Can not recognize command '" + cmd + "'");
-		}
+		try {
+			if (cmd.equalsIgnoreCase("ls")) {
+				processLs(tokens);
+			} else if (cmd.equalsIgnoreCase("mkdir")) {
+				processMkDir(tokens);
+			} else if (cmd.equalsIgnoreCase("copyfromlocal")) {
+				processCopyFromLocal(tokens);
+			} else if (cmd.equalsIgnoreCase("copytolocal")) {
+				processCopyToLocal(tokens);
+			} else if (cmd.equalsIgnoreCase("copyfromhdfs")) {
+				processCopyFromHDFS(tokens);
+			} else if (cmd.equalsIgnoreCase("copytohdfs")) {
+				processCopyToHDFS(tokens);
+			} else if (cmd.equalsIgnoreCase("newfile")) {
+				processNewFile(tokens);
+			} else if (cmd.equalsIgnoreCase("rm")) {
+				processRM(tokens);
+			} else if (cmd.equalsIgnoreCase("rmr")) {
+				processRMR(tokens);
+			} else if (cmd.equalsIgnoreCase("cat")) {
+				processCat(tokens);
+			} else if (cmd.equalsIgnoreCase("pwd")) {
+				out.println(curWorkingDir);
+			} else if (cmd.equalsIgnoreCase("cd")) {
+				processCD(tokens);
+			} else if (cmd.equalsIgnoreCase("touch")) {
+				processTouch(tokens);
+			} else if (cmd.equalsIgnoreCase("help")) {
+				processHelp(tokens);
+			} else {
+				out.println("Can not recognize command '" + cmd + "'");
+			}
+		} catch (IOException e) {
+			System.err.println(tokens[0] + ":" + e.getLocalizedMessage());
+		} 
 	}
 
 	private void processCopyToHDFS(String[] tokens) throws IOException {
@@ -140,7 +144,8 @@ public class FSCliMain {
 				OutputStream out = hdfsFS.create(new org.apache.hadoop.fs.Path(
 						tokens[2] + strSubtract(source, tokens[1])));
 				InputStream in = fs.readFile(source);
-				org.apache.hadoop.io.IOUtils.copyBytes(in, out, new Configuration());
+				org.apache.hadoop.io.IOUtils.copyBytes(in, out,
+						new Configuration());
 			} else {
 				List<Path> children = fs.list(source);
 				for (Path child : children) {
@@ -187,7 +192,7 @@ public class FSCliMain {
 		if (url.toLowerCase().startsWith("hdfs://")) {
 			int index = url.indexOf("/", 7);
 			return url.substring(0, index);
-		}else if (url.toLowerCase().startsWith("file:///")){
+		} else if (url.toLowerCase().startsWith("file:///")) {
 			return "file:///";
 		}
 		throw new IOException("Invalide hdfs path:" + url);
