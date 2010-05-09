@@ -45,6 +45,7 @@ Commands Cassandra-fs supports:
 * newfile <file> <content>	// make a new file on cassandra-fs with the contents of the second argument
 * cat <file>...	// print the file content in console
 * copyFromHDFS <source> <dest>	// copy file or folder from HDFS to cassandra-fs
+* copyToHDFS <source> <dest>	// copy file or folder from Cassandra-fs to HDFS
 * mkdir <folder> 	// make directory on cassandra-fs including the parent directory
 
 
