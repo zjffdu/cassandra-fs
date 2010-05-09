@@ -32,8 +32,8 @@ Install and Run Cassandra-fs in local mode
 3. similar to step 1 and execute the following command to run cassandra in local: "bin/cassandra" to start cassandra on linux
 4. similar to step 1, execute the following command : "bin/cassandra-fs-cli" to start cassandra-fs-cli, then you can play with a lot of file system-based commands, such as ls,mkdir and etc. 
 
-Install and Run Cassandra-fs in cluster mode
-==========================================
+Install and Run Cassandra-fs in cluster mode (linux)
+====================================================
 1. Start the cassandra cluster
 2. edit file conf/client-conf.properties, modify property cassandra.client.hosts, the default is localhost:9160, change it to your cassandra cluster, you can specify multiple machines by using comma to split the machine address, e.g. 
 cassandra.client.hosts=machine_1:9160,machine_2:9160,machine_3:9160
