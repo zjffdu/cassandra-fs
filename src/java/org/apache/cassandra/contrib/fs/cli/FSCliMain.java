@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +16,13 @@ import jline.Completor;
 import jline.ConsoleReader;
 
 import org.apache.cassandra.contrib.fs.CassandraFileSystem;
-import org.apache.cassandra.contrib.fs.FSConstants;
 import org.apache.cassandra.contrib.fs.IFileSystem;
 import org.apache.cassandra.contrib.fs.Path;
 import org.apache.cassandra.contrib.fs.PathUtil;
 import org.apache.cassandra.contrib.fs.util.Bytes;
 import org.apache.cassandra.contrib.fs.util.HDFSFileSystem;
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.thrift.transport.TTransportException;
@@ -99,6 +100,8 @@ public class FSCliMain {
 			processCopyToLocal(tokens);
 		} else if (cmd.equalsIgnoreCase("copyfromhdfs")) {
 			processCopyFromHDFS(tokens);
+		} else if (cmd.equalsIgnoreCase("copytohdfs")) {
+			processCopyToHDFS(tokens);
 		} else if (cmd.equalsIgnoreCase("newfile")) {
 			processNewFile(tokens);
 		} else if (cmd.equalsIgnoreCase("rm")) {
@@ -120,29 +123,63 @@ public class FSCliMain {
 		}
 	}
 
+	private void processCopyToHDFS(String[] tokens) throws IOException {
+		if (tokens.length != 3) {
+			out.println("copyToHDFS <source> <dest>");
+		} else {
+			String hdfsURI = getHDFSURI(tokens[2]);
+			FileSystem hdfsFS = HDFSFileSystem.getFileSystem(hdfsURI);
+			visitNodeWhenCopyToHDFS(hdfsFS, tokens[1], tokens);
+		}
+	}
+
+	private void visitNodeWhenCopyToHDFS(FileSystem hdfsFS, String source,
+			String[] tokens) throws IOException {
+		if (fs.exist(source)) {
+			if (fs.existFile(source)) {
+				OutputStream out = hdfsFS.create(new org.apache.hadoop.fs.Path(
+						tokens[2] + strSubtract(source, tokens[1])));
+				InputStream in = fs.readFile(source);
+				org.apache.hadoop.io.IOUtils.copyBytes(in, out, new Configuration());
+			} else {
+				List<Path> children = fs.list(source);
+				for (Path child : children) {
+					visitNodeWhenCopyToHDFS(hdfsFS, child.getURL(), tokens);
+				}
+			}
+		} else {
+			out.println("The source '" + tokens[1] + "' does not exist!");
+		}
+
+	}
+
 	private void processCopyFromHDFS(String[] tokens) throws IOException {
 		if (tokens.length != 3) {
 			out.println("copyFromHDFS <source> <dest>");
 		} else {
 			String hdfsURI = getHDFSURI(tokens[1]);
 			FileSystem hdfsFS = HDFSFileSystem.getFileSystem(hdfsURI);
-			visitNodeWhenCopyFromHDFS(hdfsFS,tokens[1], tokens);
+			visitNodeWhenCopyFromHDFS(hdfsFS, tokens[1], tokens);
 		}
 	}
 
-	private void visitNodeWhenCopyFromHDFS(FileSystem hdfsFS, String source,String[] tokens) throws IOException {
-		org.apache.hadoop.fs.Path sourcePath=new org.apache.hadoop.fs.Path(source);
-		if (hdfsFS.exists(sourcePath)){
-			if (hdfsFS.isFile(sourcePath)){
-				fs.createFile(tokens[2]+strSubtract(source, tokens[1]), hdfsFS.open(sourcePath));
-			}else{
-				FileStatus[] children=hdfsFS.listStatus(sourcePath);
-				for (FileStatus child : children){
-					visitNodeWhenCopyFromHDFS(hdfsFS, child.getPath().toString(), tokens);
+	private void visitNodeWhenCopyFromHDFS(FileSystem hdfsFS, String source,
+			String[] tokens) throws IOException {
+		org.apache.hadoop.fs.Path sourcePath = new org.apache.hadoop.fs.Path(
+				source);
+		if (hdfsFS.exists(sourcePath)) {
+			if (hdfsFS.isFile(sourcePath)) {
+				fs.createFile(tokens[2] + strSubtract(source, tokens[1]),
+						hdfsFS.open(sourcePath));
+			} else {
+				FileStatus[] children = hdfsFS.listStatus(sourcePath);
+				for (FileStatus child : children) {
+					visitNodeWhenCopyFromHDFS(hdfsFS, child.getPath()
+							.toString(), tokens);
 				}
 			}
-		}else{
-			out.println("The source '"+tokens[1]+"' does not exist!");
+		} else {
+			out.println("The source '" + tokens[1] + "' does not exist!");
 		}
 	}
 
@@ -150,6 +187,8 @@ public class FSCliMain {
 		if (url.toLowerCase().startsWith("hdfs://")) {
 			int index = url.indexOf("/", 7);
 			return url.substring(0, index);
+		}else if (url.toLowerCase().startsWith("file:///")){
+			return "file:///";
 		}
 		throw new IOException("Invalide hdfs path:" + url);
 	}
@@ -163,6 +202,7 @@ public class FSCliMain {
 	private void processHelp(String[] tokens) {
 		out.println("List of all FS-CLI commands:");
 		out.println("cd <folder>");
+		out.println("pwd");
 		out.println("copyToLocal <source> <dest>");
 		out.println("touch <file>...");
 		out.println("rm <file | folder>...");
@@ -171,6 +211,7 @@ public class FSCliMain {
 		out.println("cat <file>...");
 		out.println("copyFromLocal <source> <dest>");
 		out.println("copyFromHDFS <source> <dest>");
+		out.println("copyToHDFS <source> <dest>");
 		out.println("mkdir <path>");
 		out.println("ls <path>");
 	}
