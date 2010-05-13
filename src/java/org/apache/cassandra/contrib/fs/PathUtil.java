@@ -39,15 +39,17 @@ public class PathUtil {
 		return removeTrailingSlash(path);
 	}
 
-	public static void checkPath(String path) throws IOException{
+	public static void checkPath(String path) throws IOException {
 		if (Helper.isNullOrEmpty(path)) {
 			throw new IOException("Path can not been empty or null");
 		}
 		if (path.contains(":")) {
-			throw new IOException("Path can not contains ':'");
+			throw new IOException("Path '" + path
+					+ "' contains invalid character:':'");
 		}
-		if (path.contains("$")){
-			throw new IOException("Path can not contains '$'");
+		if (path.contains("$")) {
+			throw new IOException("Path '" + path
+					+ "' contains invalid character:'$'");
 		}
 	}
 }
