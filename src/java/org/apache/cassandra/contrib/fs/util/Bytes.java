@@ -81,7 +81,7 @@ public class Bytes {
 
 	/**
 	 * Returns a new byte array, copied from the passed ByteBuffer.
-	 * 
+	 *
 	 * @param bb
 	 *            A ByteBuffer
 	 * @return the byte array
@@ -159,7 +159,7 @@ public class Bytes {
 
 	/**
 	 * Converts a string to a UTF-8 byte array.
-	 * 
+	 *
 	 * @param s
 	 * @return the byte array
 	 */
@@ -178,7 +178,7 @@ public class Bytes {
 
 	/**
 	 * Convert a boolean to a byte array.
-	 * 
+	 *
 	 * @param b
 	 * @return <code>b</code> encoded in a byte array.
 	 */
@@ -201,7 +201,7 @@ public class Bytes {
 
 	/**
 	 * Convert a long value to a byte array
-	 * 
+	 *
 	 * @param val
 	 * @return the byte array
 	 */
@@ -217,7 +217,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a long value
-	 * 
+	 *
 	 * @param bytes
 	 * @return the long value
 	 */
@@ -227,7 +227,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a long value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @return the long value
@@ -238,7 +238,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a long value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @param length
@@ -259,7 +259,7 @@ public class Bytes {
 
 	/**
 	 * Presumes float encoded as IEEE 754 floating-point "single format"
-	 * 
+	 *
 	 * @param bytes
 	 * @return Float made from passed byte array.
 	 */
@@ -269,7 +269,7 @@ public class Bytes {
 
 	/**
 	 * Presumes float encoded as IEEE 754 floating-point "single format"
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @return Float made from passed byte array.
@@ -319,7 +319,7 @@ public class Bytes {
 
 	/**
 	 * Convert an int value to a byte array
-	 * 
+	 *
 	 * @param val
 	 * @return the byte array
 	 */
@@ -335,7 +335,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to an int value
-	 * 
+	 *
 	 * @param bytes
 	 * @return the int value
 	 */
@@ -345,7 +345,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to an int value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @return the int value
@@ -356,7 +356,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to an int value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @param length
@@ -377,7 +377,7 @@ public class Bytes {
 
 	/**
 	 * Put an int value out to the specified byte array position.
-	 * 
+	 *
 	 * @param bytes
 	 *            the byte array
 	 * @param offset
@@ -400,7 +400,7 @@ public class Bytes {
 
 	/**
 	 * Convert a short value to a byte array
-	 * 
+	 *
 	 * @param val
 	 * @return the byte array
 	 */
@@ -414,7 +414,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a short value
-	 * 
+	 *
 	 * @param bytes
 	 * @return the short value
 	 */
@@ -424,7 +424,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a short value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @return the short value
@@ -435,7 +435,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a short value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @param length
@@ -455,7 +455,7 @@ public class Bytes {
 
 	/**
 	 * Put a short value out to the specified byte array position.
-	 * 
+	 *
 	 * @param bytes
 	 *            the byte array
 	 * @param offset
@@ -476,7 +476,7 @@ public class Bytes {
 
 	/**
 	 * Convert a char value to a byte array
-	 * 
+	 *
 	 * @param val
 	 * @return the byte array
 	 */
@@ -490,7 +490,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a char value
-	 * 
+	 *
 	 * @param bytes
 	 * @return the char value
 	 */
@@ -500,7 +500,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a char value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @return the char value
@@ -511,7 +511,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a char value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @param length
@@ -531,7 +531,7 @@ public class Bytes {
 
 	/**
 	 * Put a char value out to the specified byte array position.
-	 * 
+	 *
 	 * @param bytes
 	 *            the byte array
 	 * @param offset
@@ -552,7 +552,7 @@ public class Bytes {
 
 	/**
 	 * Convert a char array value to a byte array
-	 * 
+	 *
 	 * @param val
 	 * @return the byte array
 	 */
@@ -564,7 +564,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a char array value
-	 * 
+	 *
 	 * @param bytes
 	 * @return the char value
 	 */
@@ -574,7 +574,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a char array value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @return the char value
@@ -585,7 +585,7 @@ public class Bytes {
 
 	/**
 	 * Converts a byte array to a char array value
-	 * 
+	 *
 	 * @param bytes
 	 * @param offset
 	 * @param length
@@ -610,7 +610,7 @@ public class Bytes {
 
 	/**
 	 * Put a char array value out to the specified byte array position.
-	 * 
+	 *
 	 * @param bytes
 	 *            the byte array
 	 * @param offset

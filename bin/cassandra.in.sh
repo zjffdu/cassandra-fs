@@ -20,7 +20,7 @@ cassandra_home=`dirname $0`/..
 # The directory where Cassandra's configs live (required)
 CASSANDRA_CONF=$cassandra_home/conf
 
-# This can be the path to a jar file, or a directory containing the 
+# This can be the path to a jar file, or a directory containing the
 # compiled classes. NOTE: This isn't needed by the startup script,
 # it's just used here in constructing the classpath.
 cassandra_bin=$cassandra_home/build/classes

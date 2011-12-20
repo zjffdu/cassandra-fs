@@ -24,7 +24,7 @@ See conf/rack.properties for an annotated example config.
 
 Installing
 ----------
- * Run the ant jar target 
+ * Run the ant jar target
  * Add build/cassandra-propsnitch.jar to the CLASSPATH
  * Edit storage-conf.xml and set ReplicaPlacementStrategy to
    org.apache.cassandra.locator.RackAwareStrategy

@@ -49,7 +49,7 @@ fi
 
 # Special-case path variables.
 case "`uname`" in
-    CYGWIN*) 
+    CYGWIN*)
         CLASSPATH=`cygpath -p -w "$CLASSPATH"`
         CASSANDRA_CONF=`cygpath -p -w "$CASSANDRA_CONF"`
     ;;
