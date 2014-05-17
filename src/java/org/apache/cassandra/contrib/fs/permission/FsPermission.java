@@ -49,7 +49,7 @@ public class FsPermission {
 
 	/**
 	 * Construct by the given {@link FsAction}.
-	 * 
+	 *
 	 * @param u
 	 *            user action
 	 * @param g
@@ -63,7 +63,7 @@ public class FsPermission {
 
 	/**
 	 * Construct by the given mode.
-	 * 
+	 *
 	 * @param mode
 	 * @see #toShort()
 	 */
@@ -73,7 +73,7 @@ public class FsPermission {
 
 	/**
 	 * Copy constructor
-	 * 
+	 *
 	 * @param other
 	 *            other permission
 	 */
@@ -190,7 +190,7 @@ public class FsPermission {
 
 	/**
 	 * Create a FsPermission from a Unix symbolic permission string
-	 * 
+	 *
 	 * @param unixSymbolicPermission
 	 *            e.g. "-rw-rw-rw-"
 	 */

@@ -24,7 +24,7 @@ import java.io.IOException;
  * Store permission related information.
  */
 public class PermissionStatus  {
-  
+
 
   /** Create an immutable {@link PermissionStatus} object. */
   public static PermissionStatus createImmutable(
@@ -95,7 +95,7 @@ public class PermissionStatus  {
 //   * Serialize a {@link PermissionStatus} from its base components.
 //   */
 //  public static void write(DataOutput out,
-//                           String username, 
+//                           String username,
 //                           String groupname,
 //                           FsPermission permission) throws IOException {
 //    Text.writeString(out, username);
